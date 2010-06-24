@@ -1,0 +1,14 @@
+* Introduction
+
+A collaborative music endeavor, mostly inspired ancient Ionian
+ideas of numerical harmony in the universe. Done as a part of
+PSU CS 410 with Professor Barton Massey.
+
+Right now, there is nothing here, other than a few zeromq
+examples. Please come back when the principle authors have
+succeeded in some small measure. There will be cake served.
+
+** TODO
++ Create build system. (Autotools)
++ Flesh out a rough-ish design.
++ Shake hands, satisfied with a project well executed.
