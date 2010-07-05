@@ -1,0 +1,6 @@
+#!/bin/sh
+
+ROOT_DIR=`dirname $0`
+HARMONY_MEDIA_DIR=${ROOT_DIR}/media/
+export HARMONY_MEDIA_DIR
+python `dirname $0`/src/main.py
