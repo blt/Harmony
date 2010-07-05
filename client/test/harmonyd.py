@@ -156,6 +156,9 @@ def main():
 
     u = Universe()
     while True:
+        for i in range(10):
+            print i
+
         u.tick()
         msg = s.recv()
         msg_id = unpack('!B', msg[0:byteSize])[0]
