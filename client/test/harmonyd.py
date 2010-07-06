@@ -169,8 +169,7 @@ def main():
             send(s, ENOSTAR)
         else:
             send(s, (OKAY, ret_id))
-        print u.serialize()
-        #pub.send(u.serialize())
+        send(pub, u.serialize())
 
 if __name__ == "__main__":
     main()

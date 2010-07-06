@@ -34,6 +34,21 @@ class HarmonyTest(unittest.TestCase):
         msg = base64.b64encode(json.dumps(msg))
         sock.send(msg)
 
+    def test_pubsub(self):
+        # Add a star.
+        self.add_star(100, 100)
+        (resp, star_id) = self.recv(self.sck)
+        self.assertEqual(resp, OKAY)
+        # Ensure that it shows up in the PUB feed.
+        wrld = self.recv(self.pub)
+        self.assertEqual(wrld[0], 1)
+        self.assertEqual(wrld[1][0][0], star_id)
+        # Delete star.
+        self.del_star(star_id)
+        (resp, rsid) = self.recv(self.sck)
+        self.assertEqual(resp, OKAY)
+        self.assertEqual(rsid, star_id)
+
     def test_reqrep(self):
         # Add star. Should respond with (OKAY, star_id) and
         # then show up in the world broadcast.
