@@ -30,20 +30,7 @@ class Planet(Ticker):
 
 class Star(object):
     pos     = None
-    planets = {}
-    # Star serialized have as leader unsigned long long giving
-    # number of planets, which is followed by constructed
-    # serialization of all planets. Format is this:
-    #
-    # Qx[QHBH]
-    #
-    # That is:
-    # NUM_PLANETS:64 PAD:8 PLANET_ID:64 ANGLE:16 SPEED:8
-    # Q              x     Q            H        B
-    #
-    # RADIUS:16
-    # H
-    form    = '!Qx'
+    planets = None
 
     def planet_id(self):
         i = 0
@@ -54,6 +41,7 @@ class Star(object):
     def __init__(self, pos=(0,0)):
         self.pid_gen = self.planet_id()
         self.pos = pos
+        self.planets = {}
 
     def add_planet(self, angle, speed, radius):
         pid = self.pid_gen.next()
