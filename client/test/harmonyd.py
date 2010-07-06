@@ -1,12 +1,13 @@
-import zmq, sys, struct
-from struct import pack, unpack
+import zmq, sys, base64
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 
 class Ticker(object):
-    form = None
-
     def tick(self):
         raise NotImplemented
-
     def serialize(self):
         raise NotImplemented
 
@@ -14,7 +15,6 @@ class Planet(Ticker):
     angle  = None
     speed  = None
     radius = None
-    form   = '!HBH'
 
     def __init__(self, angle=0, speed=1, radius=2):
         self.angle  = angle
@@ -26,7 +26,7 @@ class Planet(Ticker):
         self.angle = (self.angle + self.speed)%360
 
     def serialize(self):
-        return pack(self.form, self.angle, self.speed, self.radius)
+        return (self.angle, self.speed, self.radius)
 
 class Star(object):
     pos     = None
@@ -55,10 +55,10 @@ class Star(object):
             raise NoPlanet
 
     def serialize(self):
-        serl = [pack(self.form, len(self.planets))]
-        for pk, pv in self.planets.iteritems():
-            serl.append(pack('!Q', pk) + pv.serialize())
-        return ''.join(serl)
+        serl = (len(self.planets),
+                [(planet_id, planet.serialize()) for
+                 (planet_id, planet) in self.planets.iteritems()])
+        return serl
 
     def tick(self):
         for p in self.planets.values():
@@ -66,16 +66,7 @@ class Star(object):
 
 class Universe(Ticker):
     stars = None
-    # Universe serialized have as leader unsigned long long
-    # giving number of stars, which is followed by
-    # constructed serialization of all stars. Format is
-    # this:
-    #
-    # Qx[Q$STAR]
-    #
-    # That is:
-    # NUM_PLANETS:64 PAD:8 STAR_ID:64 FOO
-    form    = '!Qx'
+    form    = '!Q'
 
     def star_id(self):
         i = 0
@@ -110,11 +101,14 @@ class Universe(Ticker):
         except KeyError:
             raise NoPlanet
 
+    def __str__(self):
+        return "<%d, [%s]>" % (len(self.stars), ''.join([str(s) for s in self.stars]))
+
     def serialize(self):
-        serl = [pack(self.form, len(self.stars))]
-        for sk, sv in self.stars.iteritems():
-            serl.append(pack('!Q', sk) + sv.serialize())
-        return ''.join(serl)
+        serl = (len(self.stars),
+                [(star_id, star.serialize()) for
+                 (star_id, star) in self.stars.iteritems()])
+        return serl
 
     def tick(self):
         for s in self.stars.values():
@@ -133,7 +127,12 @@ ENOSTAR    = int('01', 2)
 ENOPLANET  = int('11', 2)
 ECRANKY    = int('10', 2)
 
-byteSize = struct.calcsize('B')
+def recv(sock):
+    msg = sock.recv()
+    return json.loads(base64.b64decode(msg))
+def send(sock, msg):
+    msg = base64.b64encode(json.dumps(msg))
+    sock.send(msg)
 
 def main():
     ctx = zmq.Context()
@@ -145,40 +144,33 @@ def main():
     u = Universe()
     while True:
         u.tick()
-        msg = s.recv()
-        msg_id = unpack('!B', msg[0:byteSize])[0]
+        msg = recv(s)
+        msg_id = msg[0]
         try:
             if msg_id == ADD_STAR:
-                # MSG_ID:8, XPOS:64, YPOS:64
-                # B       x Q        Q
-                xpos, ypos = unpack('!BxQQ', msg)[1:]
+                xpos, ypos = msg[1:]
                 ret_id = u.add_star((xpos, ypos))
             elif msg_id == DEL_STAR:
-                # MSG_ID:8, STAR_ID:64
-                # B       x Q
-                star_id = unpack('!BxQ', msg)[1]
+                star_id = msg[1]
                 u.del_star(star_id)
                 ret_id = star_id
             elif msg_id == ADD_PLANET:
-                # MSG_ID:8, STAR_ID:64, ANGLE:16, SPEED:8, RADIUS:16
-                # B       x Q           H         B        H
-                star_id, angle, speed, radius = unpack('!BxQHBH', msg)[1:]
+                star_id, angle, speed, radius = msg[1:]
                 ret_id = u.add_planet(star_id, angle, speed, radius)
             elif msg_id == DEL_PLANET:
-                # MSG_ID:8, STAR_ID:64, PLANET_ID:64
-                # B       x Q           Q
-                star_id, planet_id = unpack('!BxQQ', msg)[1:]
+                star_id, planet_id = msg[1:]
                 u.del_planet(star_id, planet_id)
                 ret_id = planet_id
             else:
                 raise NotImplemented
         except NoPlanet:
-            s.send(pack('!B', ENOPLANET))
+            send(s, ENOPLANET)
         except NoStar:
-            s.send(pack('!B', ENOSTAR))
+            send(s, ENOSTAR)
         else:
-            s.send(pack('!BxQ', OKAY, ret_id))
-        pub.send(u.serialize())
+            send(s, (OKAY, ret_id))
+        print u.serialize()
+        #pub.send(u.serialize())
 
 if __name__ == "__main__":
     main()
