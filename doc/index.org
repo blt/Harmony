@@ -36,6 +36,8 @@ Better details to come. Languages:
 The head repository for Harmony is to be found [[http://github.com/blt/Harmony][at GitHub]]. Fork
 it!
 
+[[www.mobydick.com][Moby Dick]]
+
 * Download
 
 There are no binaries available at this time.

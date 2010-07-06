@@ -143,6 +143,9 @@ def main():
 
     u = Universe()
     while True:
+        for i in range(10):
+            print i
+
         u.tick()
         msg = recv(s)
         msg_id = msg[0]
