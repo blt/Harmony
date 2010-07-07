@@ -1,0 +1,35 @@
+%%% -*- mode:erlang -*-
+{application, '%APP_NAME%',
+ [
+  % A quick description of the application.
+  {description, "An Erlang Application."},
+
+  % The version of the applicaton. This is automatically populated by OTP Base
+  {vsn, "%VSN%"},
+
+  % All modules used by the application. This is automatically populated by OTP Base
+  {modules,
+   [
+    %MODULES%
+   ]},
+
+  % This is a list of the applications that your application depends on. This list must be filled out
+  % carefully so that dependency resolution systems can function properly.
+  {applications,
+   [
+    kernel, 
+    stdlib
+   ]},
+
+  % A list of the registered processes in your application.  Used to prevent collisions. 
+  {registered, []}
+
+  % The Module and Args used to start this application.
+  % Uncomment this and fill it out if you wish to start 
+  % your application via the otp framework.
+  % Note* if you uncomment this make sure to add a comma after 
+  %       tuple above.
+  % {mod, {ApplicationBehaviourModule, [StartArgs]}}
+ ]
+}.
+
