@@ -2,3 +2,4 @@
 
 %behavior: gen_frm
 %purpose: be the star
+
