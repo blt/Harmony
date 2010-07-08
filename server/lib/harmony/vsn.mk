@@ -1,1 +1,0 @@
-HARMONY_VSN=1.0
