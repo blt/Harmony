@@ -1,4 +1,6 @@
--ifndef(_HARMONY_HRL).
--define(_HARMONY_HRL, true).
-
--endif.
+-record(star, {xpos,
+               ypos,
+               planets = []}).
+-record(planet, {radius,
+                 speed,
+                 angle}).

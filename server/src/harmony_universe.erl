@@ -1,11 +1,11 @@
 %%%-------------------------------------------------------------------
-%%% File    : harmony.erl
+%%% File    : harmony_universe.erl
 %%% Author  : Brian L. Troutwine <blt@doritos>
 %%% Description :
 %%%
 %%% Created :  8 Jul 2010 by Brian L. Troutwine <blt@doritos>
 %%%-------------------------------------------------------------------
--module(harmony).
+-module(harmony_universe).
 
 -behaviour(gen_server).
 
@@ -17,8 +17,10 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
+-define(TIMEOUT, 150).
 -define(SERVER, ?MODULE).
--record(state, {id_tick=0}).
+-record(state, {id_tick=0, utab}).
+-include("harmony.hrl").
 
 %%====================================================================
 %% API
@@ -28,14 +30,14 @@
 %% Description: Starts the server
 %%--------------------------------------------------------------------
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({local, ?SERVER}, ?MODULE, #state{}, []).
 
 %%--------------------------------------------------------------------
 %% Function: add_star(Xpos, Ypos) -> {ok, StarId} | {error,Error}
 %% Description: Adds a star to the Universe, or fails trying.
 %%--------------------------------------------------------------------
 add_star(Xpos, Ypos) ->
-    {error, not_implemented}.
+    gen_server:call(huni, {add_star, Xpos, Ypos}, ?TIMEOUT).
 
 %%--------------------------------------------------------------------
 %% Function: del_star(StarId) -> -> {ok, StarId} | {error,Error}
@@ -43,7 +45,7 @@ add_star(Xpos, Ypos) ->
 %%              star does not exist.
 %%--------------------------------------------------------------------
 del_star(StarId) ->
-    {error, not_implemented}.
+    gen_server:call(huni, {del_star, StarId}, ?TIMEOUT).
 
 %%--------------------------------------------------------------------
 %% Function: add_planet(StarId, Angle, Speed, Radius) ->
@@ -53,7 +55,9 @@ del_star(StarId) ->
 %%              if the star does not exist.
 %%--------------------------------------------------------------------
 add_planet(StarId, Angle, Speed, Radius) ->
-    {error, not_implemented}.
+    gen_server:call(huni,
+                    {add_planet, StarId, Angle, Speed, Radius},
+                    ?TIMEOUT).
 
 %%--------------------------------------------------------------------
 %% Function: del_star(StarId, PlanetId) -> {ok, PlanetId}
@@ -63,7 +67,7 @@ add_planet(StarId, Angle, Speed, Radius) ->
 %%              the planet does not exist.
 %%--------------------------------------------------------------------
 del_planet(StarId, PlanetId) ->
-    {error, not_implemented}.
+    gen_server:call(huni, {del_planet, StarId, PlanetId}, ?TIMEOUT).
 
 %%====================================================================
 %% gen_server callbacks
@@ -76,8 +80,10 @@ del_planet(StarId, PlanetId) ->
 %%                         {stop, Reason}
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
-init([]) ->
-    {ok, #state{}}.
+init(State) ->
+    NewState = State#state{utab=ets:new(utab, [])},
+    erlang:register(huni, self()),
+    {ok, NewState}.
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |
@@ -131,9 +137,17 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%--------------------------------------------------------------------
 
-%%--------------------------------------------------------------------
-%% Function: next_id(#state) -> {ID, #state}.
-%% Description: Provides unique object IDs.
-%%--------------------------------------------------------------------
-next_id(State = #state{id_tick=ID}) ->
-    {ID, #state{id_tick=ID+1}}.
+%% %%--------------------------------------------------------------------
+%% %% Function: next_id(#state) -> {ID, #state}.
+%% %% Description: Provides unique object IDs.
+%% %%--------------------------------------------------------------------
+%% next_id(State = #state{id_tick=ID}) ->
+%%     {ID, #state{id_tick=ID+1}}.
+
+%% %%--------------------------------------------------------------------
+%% %% Function: new_star(Xpos, Ypos) -> #star.
+%% %% Description: Creates a new star.
+%% %%--------------------------------------------------------------------
+%% new_star(Xpos, Ypos) ->
+%%     #star{xpos=Xpos, ypos=Ypos}.
+

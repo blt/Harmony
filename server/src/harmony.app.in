@@ -1,7 +1,7 @@
 {application, harmony,
  [{description, "Harmony Project daemon"},
   {vsn, "@VERSION@"},
-  {modules, [harmony_app, harmony_sup, harmony_server]},
+  {modules, [harmony_app, harmony_sup, harmony_universe},
   {registered, []},
   {applications, [kernel, stdlib]},
   {mod, {harmony_app, []}},
