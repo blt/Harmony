@@ -1,23 +1,24 @@
 %%%-------------------------------------------------------------------
-%%% File    : harmony_server.erl
-%%% Author  : Brian L. Troutwine <brian@troutwine.us>
+%%% File    : harmony.erl
+%%% Author  : Brian L. Troutwine <blt@doritos>
 %%% Description :
 %%%
-%%% Created :  7 Jul 2010 by Brian L. Troutwine <brian@troutwine.us>
+%%% Created :  8 Jul 2010 by Brian L. Troutwine <blt@doritos>
 %%%-------------------------------------------------------------------
--module(harmony_server).
+-module(harmony).
 
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, add_star/2, del_star/1]).
+-export([add_planet/4, del_planet/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
--record(state, {}).
+-record(state, {id_tick=0}).
 
 %%====================================================================
 %% API
@@ -28,6 +29,41 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+%%--------------------------------------------------------------------
+%% Function: add_star(Xpos, Ypos) -> {ok, StarId} | {error,Error}
+%% Description: Adds a star to the Universe, or fails trying.
+%%--------------------------------------------------------------------
+add_star(Xpos, Ypos) ->
+    {error, not_implemented}.
+
+%%--------------------------------------------------------------------
+%% Function: del_star(StarId) -> -> {ok, StarId} | {error,Error}
+%% Description: Deletes a star from the Universe, fails if
+%%              star does not exist.
+%%--------------------------------------------------------------------
+del_star(StarId) ->
+    {error, not_implemented}.
+
+%%--------------------------------------------------------------------
+%% Function: add_planet(StarId, Angle, Speed, Radius) ->
+%%                                         {ok, PlanetId} |
+%%                                         {error, Error}
+%% Description: Adds a planet to a star in the Universe. Fails
+%%              if the star does not exist.
+%%--------------------------------------------------------------------
+add_planet(StarId, Angle, Speed, Radius) ->
+    {error, not_implemented}.
+
+%%--------------------------------------------------------------------
+%% Function: del_star(StarId, PlanetId) -> {ok, PlanetId}
+%%                                       | {error,Error}
+%% Description: Deletes a planet from a star in the
+%%              Universe. Fails if the star does not exist or
+%%              the planet does not exist.
+%%--------------------------------------------------------------------
+del_planet(StarId, PlanetId) ->
+    {error, not_implemented}.
 
 %%====================================================================
 %% gen_server callbacks
@@ -94,3 +130,10 @@ code_change(_OldVsn, State, _Extra) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+
+%%--------------------------------------------------------------------
+%% Function: next_id(#state) -> {ID, #state}.
+%% Description: Provides unique object IDs.
+%%--------------------------------------------------------------------
+next_id(State = #state{id_tick=ID}) ->
+    {ID, #state{id_tick=ID+1}}.
