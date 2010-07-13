@@ -1,4 +1,4 @@
-import sys, pygame, zmq
+import sys, pygame
 from pygame import FULLSCREEN, DOUBLEBUF, RESIZABLE
 from pygame import mouse
 from pygame.locals import *
@@ -16,6 +16,7 @@ ENOSTAR    = int('01', 2)
 ENOPLANET  = int('11', 2)
 ECRANKY    = int('10', 2)
 
+STAR_WIDTH = 
 def p(s):
     return lambda : sys.stdout.write(s+'\n')
 
@@ -26,50 +27,54 @@ class Harmony(object):
     planets  = []
     stars    = [] 
     add_buf  = {"stars": [], "planets": []}
-    ctx      = zmq.Context()
-    sock     = ctx.socket(zmq.REQ)
-    sub      = ctx.socket(zmq.SUB)
+    scale = "pentatonic"
+   # ctx      = zmq.Context()
+   # sock     = ctx.socket(zmq.REQ)
+   # sub      = ctx.socket(zmq.SUB)
 
     def __init__(self, res=(0,0)):
         pygame.init()
         self.screen = pygame.display.set_mode(res,
                                                RESIZABLE|FULLSCREEN)
-        self.sock.connect("tcp://127.0.0.1:5000")
-        self.sub.connect( "tcp://127.0.0.1:5001")
-        self.sub.setsockopt(zmq.SUBSCRIBE, "")
+      #  self.sock.connect("tcp://127.0.0.1:5000")
+      #  self.sub.connect( "tcp://127.0.0.1:5001")
+      # self.sub.setsockopt(zmq.SUBSCRIBE, "")
 
     def graphics_tick(self):
         for event in pygame.event.get():
-            if   event.type == pygame.QUIT: sys.exit()
+            if   event.type == pygame.QUIT: sys.exit(0)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 #self.add_buf["stars"].append(event.pos))
-                self.stars.append(Star(event.pos))
+                self.stars.append(Star(event.pos, self.scale), )
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.screen = pygame.display.set_mode(self.R_SIZE, 0, 0) 
                 elif event.key == K_q:
                     sys.exit()
+                elif event.key == K_z:
+                    for star in self.stars:
+                        star.zoom()
                                                           
                 
         for star in self.stars:
             self.screen.blit(star.image, star.rect)
             if(star.rect.collidepoint(mouse.get_pos())):
                 for ring in star.rings:
-                    self.screen.blit(ring, ring.get_rect(center = star.vertex))
+                    self.screen.blit(ring.image, ring.rect)
 
         pygame.display.flip()
 
-    def network_tick(self):
-        wrld = self.sub.recv(zmq.NOBLOCK)
-        print wrld
+   # def network_tick(self):
+   #     wrld = self.sub.recv(zmq.NOBLOCK)
+   #     print wrld
 
-        self.sock.send(pack('!B', ADD_STAR))
-        result = unpack('!B', self.sock.recv())
-        { OKAY:      p("Okay"),
-          ENOSTAR:   p("No such star"),
-          ENOPLANET: p("No such planet"),
-          ECRANKY:   p("Server was just cranky")
-         }.get(result[0], p("Woops"))()
+    #    self.sock.send(pack('!B', ADD_STAR))
+     #   result = unpack('!B', self.sock.recv())
+     #   { OKAY:      p("Okay"),
+     #     ENOSTAR:   p("No such star"),
+     #     ENOPLANET: p("No such planet"),
+     #     ECRANKY:   p("Server was just cranky")
+     #    }.get(result[0], p("Woops"))()
 
     def snd_tick(self):
         pass

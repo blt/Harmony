@@ -1,11 +1,12 @@
-import pygame
+import pygame, os
 import math
 import operator
 from pygame import image
 
 class Planet(object):
-    image_pth = os.path.join(os.environ["HARMONY_MEDIA_DIR"],
-                             "planet.png")
+    #image_pth = os.path.join(os.environ["HARMONY_MEDIA_DIR"],
+    #                         "planet.png")
+    image_pth = os.path.join('../media', 'planet.png')
 
     def __init__(self, radius, startpos):
         self.image = image.load(self.image_pth).convert();
