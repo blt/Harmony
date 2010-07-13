@@ -13,6 +13,7 @@ AC_ERLANG_SUBST_LIB_DIR
 AC_ERLANG_CHECK_LIB([kernel])
 AC_ERLANG_CHECK_LIB([stdlib])
 AC_ERLANG_CHECK_LIB([eunit])
+AC_ERLANG_CHECK_LIB([mnesia])
 AC_ERLANG_SUBST_INSTALL_LIB_SUBDIR([harmony], [0.0.1])
 
 AC_CONFIG_FILES([Makefile src/harmony.app src/harmony.rel src/Makefile])
