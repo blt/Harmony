@@ -11,7 +11,8 @@
 
 %% API
 -export([start_link/0, add_star/2, del_star/1]).
--export([add_planet/4, del_planet/2]).
+-export([add_planet/4, del_planet/2, get_uni/0]).
+-export([load/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -22,6 +23,8 @@
 -define(SERVER, ?MODULE).
 -record(state, {tick=0, utab, objs=0}).
 -include("harmony.hrl").
+-include_lib("eunit/include/eunit.hrl").
+-include_lib("stdlib/include/qlc.hrl").
 
 %%====================================================================
 %% API
@@ -32,6 +35,16 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+% Populating a server by hand sucks.
+load() ->
+    {ok, S0} = add_star(10,10),
+    {ok, _P0} = add_planet(S0, 10,10,10),
+    {ok, _P1} = add_planet(S0, 10,10,20),
+    {ok, S1} = add_star(10,10),
+    {ok, _P2} = add_planet(S1, 10,10,10),
+    {ok, _P3} = add_planet(S1, 10,10,20).
+
 
 %%--------------------------------------------------------------------
 %% Function: add_star(Xpos, Ypos) -> {ok, StarId} | {error,Error}
@@ -70,6 +83,9 @@ add_planet(StarId, Angle, Speed, Radius) ->
 del_planet(StarId, PlanetId) ->
     gen_server:call(?SERVER, {del_planet, StarId, PlanetId}, ?TIMEOUT).
 
+get_uni() ->
+    gen_server:call(?SERVER, get_uni, ?TIMEOUT).
+
 %%====================================================================
 %% gen_server callbacks
 %%====================================================================
@@ -102,7 +118,7 @@ init([]) ->
 %%--------------------------------------------------------------------
 handle_call({add_star, Xpos, Ypos}, _From,
             State = #state{objs=StarId}) ->
-    Star  = #star{star_id=StarId, xpos=Xpos, ypos=Ypos},
+    Star  = #star{id=StarId, xpos=Xpos, ypos=Ypos},
     Fun = fun() -> mnesia:write(Star) end,
     mnesia:transaction(Fun),
     Reply = {ok, StarId},
@@ -111,7 +127,7 @@ handle_call({add_star, Xpos, Ypos}, _From,
 handle_call({del_star, StarId}, _From, State) ->
     Orbit = #in_orbit{star_id=StarId, planet_id='_'},
     PlanDel = fun(Planet) ->
-                      P_id = Planet#planet.planet_id,
+                      P_id = Planet#planet.id,
                       mnesia:delete(planet, P_id)
               end,
     Fun = fun() ->
@@ -130,7 +146,7 @@ handle_call({del_star, StarId}, _From, State) ->
 
 handle_call({add_planet, StarId, Angle, Speed, Radius}, _From,
             State = #state{objs=PlanetId}) ->
-    Planet = #planet{planet_id=PlanetId, radius=Radius, speed=Speed, angle=Angle},
+    Planet = #planet{id=PlanetId, radius=Radius, speed=Speed, angle=Angle},
     Orbit  = #in_orbit{star_id=StarId, planet_id=PlanetId},
     Fun = fun() ->
                   mnesia:write(Orbit),
@@ -141,7 +157,7 @@ handle_call({add_planet, StarId, Angle, Speed, Radius}, _From,
     {reply, Reply, State#state{objs=PlanetId+1}};
 
 handle_call({del_planet, StarId, PlanetId}, _From, State) ->
-    Planet = #planet{planet_id=PlanetId, radius='_', speed='_', angle='_'},
+    Planet = #planet{id=PlanetId, _='_'},
     Orbit  = #in_orbit{star_id=StarId, planet_id=PlanetId},
     Fun = fun() ->
                   mnesia:delete_object(Orbit),
@@ -151,9 +167,29 @@ handle_call({del_planet, StarId, PlanetId}, _From, State) ->
     Reply = {ok, PlanetId},
     {reply, Reply, State};
 
-handle_call(_Request, _From, State) ->
-    Reply = ok,
+handle_call(get_uni, _From, State) ->
+    F = fun() ->
+                Stars = qlc:e(all_stars()),
+                Sys = [#system{star=S,
+                               planets=qlc:e(all_planets(S))}
+                       || S <- Stars],
+                #universe{time=now(), stars=Sys}
+        end,
+    {atomic, U} = mnesia:transaction(F),
+    Reply = {ok, U},
     {reply, Reply, State}.
+
+all_stars() ->
+    qlc:q([S || S <- mnesia:table(star)]).
+
+all_planets(Star) ->
+    qlc:q([P ||
+              P <- mnesia:table(planet),
+              O <- mnesia:table(in_orbit),
+              Star#star.id == O#in_orbit.star_id,
+              P#planet.id  == O#in_orbit.planet_id
+          ]).
+
 
 %%--------------------------------------------------------------------
 %% Function: handle_cast(Msg, State) -> {noreply, State} |
@@ -216,3 +252,7 @@ map_(F, [H|T]) ->
     map_(F, T);
 map_(_F, []) ->
     ok.
+
+%%--------------------------------------------------------------------
+%% Tests
+%%--------------------------------------------------------------------
