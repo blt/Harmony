@@ -105,7 +105,7 @@ handler(<<Command:8, Remaining/bitstring>>) ->
 	  2 ->  D = delStar(Remaining);
 	  4 ->  D = addPlanet(Remaining);
 	  8 ->  D = delPlanet(Remaining);
-	  16 -> D2 = getUNI(Remaining), D ={0,0};%setup for error testing
+	  16 -> D = getUNI(Remaining); %, D ={0,0};%setup for error testing
 	  _  -> D = {?ErrorCode, ?CommandFaultCode}
 	end,
 	outputFile(?LogFile,tuple_to_list(D)), %output to logfile
@@ -117,12 +117,43 @@ handler(_T) -> {'Error in input',_T}.
 %% %% Description: builds a string from the input
 %% %%--------------------------------------------------------------------
 
+%% %% Get UNI output format
+%% %% [0/1]:8, megSec:32, sec:32, micro:32, #stars:16, starid:32, x:16, y:16,
+%% %%       #planets:16, planetid:32, angle:16, speed:16, radius:16
+buildBitReturn({ok, {universe, {MegSec,Sec,MicroSec}, System}}) ->
+	NumSys = length(System),
+	SystemBits = sysDecode({<<>>,System}),
+	<<1:8, MegSec:32, Sec:32, MicroSec:32, NumSys:16, SystemBits/bitstring>>;
+
 buildBitReturn({ok, ID}) -> <<1:8,ID:32>>;
 %---------------------------------------------
 %if we choose to send planet and star IDs back
 buildBitReturn({ok, SID, PID}) -> <<1:8,SID:32, PID:32>>;
 %---------------------------------------------
+
 buildBitReturn({_,ID}) -> <<?ErrorCode:8,ID:32>>.
+
+%% %%--------------------------------------------------------------------
+%% %% Function: 
+%% %% Description: 
+%% %%--------------------------------------------------------------------
+sysDecode({Out, [{system,{star,StarId,StarXpos,StarYpos} ,Planets}|[]]})-> 
+	NumPlanets = length(Planets),
+	PlanetBits = planetDecode(<<>>, Planets),
+	<<StarId:32, StarXpos:16, StarYpos:16, NumPlanets:16, PlanetBits/bitstring,  Out/bitstring>>;
+sysDecode({Out, [{system, {star, StarId, StarXpos, StarYpos}, Planets}|Tail]}) ->
+	NumPlanets = length(Planets),
+	PlanetBits = planetDecode(<<>>, Planets),
+	sysDecode({<<StarId:32, StarXpos:16, StarYpos:16, NumPlanets:16, PlanetBits/bitstring,  Out/bitstring>>,Tail}).
+
+%% %%--------------------------------------------------------------------
+%% %% Function: 
+%% %% Description: 
+%% %%--------------------------------------------------------------------
+planetDecode(Out, [{planet, PlanetId, Angle, Speed, Radius}|[]]) ->
+	<<PlanetId:32, Angle:16, Speed:16, Radius:16, Out/bitstring>>;
+planetDecode(Out, [{planet, PlanetId, Angle, Speed, Radius}|Tail]) -> 
+	planetDecode(<<PlanetId:32, Angle:16, Speed:16, Radius:16, Out/bitstring>>,Tail).
 
 %% %%--------------------------------------------------------------------
 %% %% Function: addStar(<<XPos:16, YPos:16>>) --> {"return statement"}.

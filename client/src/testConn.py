@@ -35,5 +35,6 @@ print "Del Planet ", struct.unpack(x.pckUnpack,f)
 
 #test get universe
 f = x.getUNI()
-print "get UNI ", struct.unpack(x.pckUnpack,f)
+print "get UNI ", f
+#print "get UNI ", struct.unpack(x.pckUnpack,f)
 
