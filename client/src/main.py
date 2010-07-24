@@ -3,6 +3,7 @@ from pygame import FULLSCREEN, DOUBLEBUF, RESIZABLE
 from pygame import mouse
 from pygame.locals import *
 from star import Star
+from creator import Creator
 from struct import pack, unpack
 #from planet import Planet
 
@@ -16,7 +17,9 @@ ENOSTAR    = int('01', 2)
 ENOPLANET  = int('11', 2)
 ECRANKY    = int('10', 2)
 
-STAR_WIDTH = 
+STAR_WIDTH  = 30
+STAR_HEIGHT = 30
+
 def p(s):
     return lambda : sys.stdout.write(s+'\n')
 
@@ -24,10 +27,12 @@ class Harmony(object):
     BG_COLOR = 0,0,0
     R_SIZE = 1024, 768
     screen   = None
-    planets  = []
-    stars    = [] 
+    creator  = None
     add_buf  = {"stars": [], "planets": []}
-    scale = "pentatonic"
+    stars    = {}
+    starNum  = 0
+    stars2   = []
+    mscale   = "pentatonic"
    # ctx      = zmq.Context()
    # sock     = ctx.socket(zmq.REQ)
    # sub      = ctx.socket(zmq.SUB)
@@ -36,32 +41,51 @@ class Harmony(object):
         pygame.init()
         self.screen = pygame.display.set_mode(res,
                                                RESIZABLE|FULLSCREEN)
+        self.creator = Creator()
+
       #  self.sock.connect("tcp://127.0.0.1:5000")
       #  self.sub.connect( "tcp://127.0.0.1:5001")
       # self.sub.setsockopt(zmq.SUBSCRIBE, "")
 
-    def graphics_tick(self):
-        for event in pygame.event.get():
+
+    def handle_events(self):
+         mousePos = self.creator.get_mouse_pos()
+	 for event in pygame.event.get():
             if   event.type == pygame.QUIT: sys.exit(0)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                #self.add_buf["stars"].append(event.pos))
-                self.stars.append(Star(event.pos, self.scale), )
+                self.add_buf["stars"].append(Star(mousePos, self.mscale,STAR_HEIGHT, STAR_WIDTH))
+                self.stars[self.starNum] = Star(mousePos, self.mscale, STAR_HEIGHT, STAR_WIDTH)
+                self.stars2.append(Star(mousePos, self.mscale, STAR_HEIGHT, STAR_WIDTH))
+                self.starNum += 1
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.screen = pygame.display.set_mode(self.R_SIZE, 0, 0) 
                 elif event.key == K_q:
                     sys.exit()
                 elif event.key == K_z:
-                    for star in self.stars:
-                        star.zoom()
-                                                          
-                
-        for star in self.stars:
-            self.screen.blit(star.image, star.rect)
-            if(star.rect.collidepoint(mouse.get_pos())):
-                for ring in star.rings:
-                    self.screen.blit(ring.image, ring.rect)
+                    self.creator.zoom()
+                elif event.key == K_x:
+                    self.creator.unzoom() 
+                elif event.key == K_RIGHT:
+                    self.creator.scroll_right()
+                elif event.key == K_LEFT:
+                    self.creator.scroll_left()
+                elif event.key == K_DOWN:
+                    self.creator.scroll_down()
+                elif event.key == K_UP:
+                    self.creator.scroll_up()
 
+
+
+    def graphics_tick(self):
+        self.handle_events()
+        self.creator.update_universe(self.stars, len(self.stars))
+        self.creator.draw_universe(self.screen) 
+       # for val in star.itervalues():
+       #     self.screen.blit(val.image, val.rect)
+       # for val in self.stars.itervalues():
+       #     self.screen.blit(val.image, val.rect)     
+ 
         pygame.display.flip()
 
    # def network_tick(self):
