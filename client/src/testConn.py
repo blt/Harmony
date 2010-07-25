@@ -5,36 +5,28 @@
 ###
 ### Created 	: 23 Jul 2010 by Jared T. Sund <jaredsund@gmail.com>
 ###-----------------------------------------------------------
-
 import harmonyConn 
 from harmonyConn import *
 
 
+#x = harmonyConn('sundhome.com', 1234)
 x = harmonyConn('127.0.0.1', 1234)
 
 #error, invalid command
-f = x.addError(33,44)
-print "Add Error", struct.unpack(x.pckUnpack, f)
-
+print "Add Error", x.addError(33,44)
 
 #test add star
-f = x.addStar(32,43)
-print "Add Star ", struct.unpack(x.pckUnpack, f)
+print "Add Star", x.addStar(32,43)
 
 #test delete star
-f = x.delStar(46)
-print "Del Star ",struct.unpack(x.pckUnpack, f)
+print "Del Star", x.delStar(46)
 
 #test add planet
-f = x.addPlanet(23, 43, 23, 23)
-print "Add Planet ", struct.unpack(x.pckUnpack,f)
+print "Add Planet", x.addPlanet(23, 43, 23, 23)
 
 #test delete planet
-f = x.delPlanet(32, 43)
-print "Del Planet ", struct.unpack(x.pckUnpack,f)
+print "Del Planet ", x.delPlanet(32, 43)
 
 #test get universe
-f = x.getUNI()
-print "get UNI ", f
-#print "get UNI ", struct.unpack(x.pckUnpack,f)
+print "getUNI ", x.getUNI()
 

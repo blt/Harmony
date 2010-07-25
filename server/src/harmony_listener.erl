@@ -109,7 +109,9 @@ handler(<<Command:8, Remaining/bitstring>>) ->
 	  _  -> D = {?ErrorCode, ?CommandFaultCode}
 	end,
 	outputFile(?LogFile,tuple_to_list(D)), %output to logfile
-	buildBitReturn(D); %build the bitString for return to the sender
+	B = buildBitReturn(D), %build the bitString for return to the sender
+	outputFile(?LogFile, binary_to_list(B)),
+	B;
 handler(_T) -> {'Error in input',_T}.
 
 %% %%--------------------------------------------------------------------
@@ -123,7 +125,8 @@ handler(_T) -> {'Error in input',_T}.
 buildBitReturn({ok, {universe, {MegSec,Sec,MicroSec}, System}}) ->
 	NumSys = length(System),
 	SystemBits = sysDecode({<<>>,System}),
-	<<1:8, MegSec:32, Sec:32, MicroSec:32, NumSys:16, SystemBits/bitstring>>;
+	<<1:8, 1280:32, 23638:32, 974406:32, NumSys:16, SystemBits/bitstring>>;
+	%<<1:8, MegSec:32, Sec:32, MicroSec:32, NumSys:16, SystemBits/bitstring>>;
 
 buildBitReturn({ok, ID}) -> <<1:8,ID:32>>;
 %---------------------------------------------
