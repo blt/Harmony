@@ -19,3 +19,18 @@ get_uni() ->{ok,
     }
 }.
 
+get_uni2() ->{ok,
+    {universe
+	,now()
+	    ,[
+	    {system, {star,1,10,10}, []}
+	    ,
+      	    {system, {star,2,10,10}, [{planet,3,10,10,10}, {planet,4,20,20,20}]}
+	    ]
+    }
+}.
+
+get_uni1() ->{ok,{universe ,now(),[]}}.
+
+
+
