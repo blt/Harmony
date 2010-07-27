@@ -58,9 +58,9 @@ class harmonyConn:
    ## ##              returns the function's success (0/1) and the new
    ## ##              starId
    ## ##--------------------------------------------------------------------
-   def addStar(self,Xpos, Ypos):
+   def addStar(self, Xpos, Ypos, key):
 	s = self.makeConnection()
-	p = struct.pack('!BHH',1,Xpos,Ypos)
+	p = struct.pack('!BHHB',1,Xpos,Ypos,key)
 	s.send(p)
 	data = s.recv(self.bufSize)
 	s.close()
@@ -91,9 +91,9 @@ class harmonyConn:
    ## ##              Speed, and Radius.  Returns the function's success (0/1),
    ## ##              and the new planet's id
    ## ##--------------------------------------------------------------------
-   def addPlanet(self, StarId, Angle, Speed, Radius):
+   def addPlanet(self, StarId, Angle, Speed, Radius, Note):
 	s = self.makeConnection()
-	p = struct.pack('!BHHHH',4,StarId,Angle,Speed,Radius)
+	p = struct.pack('!BHHHHB',4,StarId,Angle,Speed,Radius,Note)
 	s.send(p)
 	data = s.recv(self.bufSize)
 	s.close()
@@ -118,24 +118,25 @@ class harmonyConn:
     	return output
    ## - end of delPlanet function
 
+
    ## ##--------------------------------------------------------------------
    ## ## Function: getUNI 
    ## ## Description: makes a request to the server, for all of the stars
    ## ##              and planets.
    ## ##--------------------------------------------------------------------
-   def getUNI(self):
+   def getUNI(self, stateId):
         ## - make a connection to the server, issue command 16 (gen_UNI)
         ## -  recieve the response in variable data
 	s = self.makeConnection()
-	p = struct.pack('!B',16)
+	p = struct.pack('!BH',16, stateId)
 	s.send(p)
 	data = s.recv(self.UNIbufSize)
 	s.close()
 
         ## - bit sizes for incomming data
-	openState = '!BIIIH' #8,32,32,32,16: success/failure, megsec,sec,microsec,#stars
-	starInfo = '!HHHH'  #16,16,16,16: starId, XPos, YPos, #planets
-	planetInfo = '!HHHH' #16,16,16,16: planetId, angle, speed, radius
+	openState = '!BHH' #8,32,32,32,16: success/failure, megsec,sec,microsec,#stars
+	starInfo = '!HHHBH'  #16,16,16,16: starId, XPos, YPos, Key, #planets
+	planetInfo = '!HHHHB' #16,16,16,16: planetId, angle, speed, radius, Note
 
 	## - bit counters for parsing the bitstring (unpack)
 	start = 0
@@ -143,8 +144,7 @@ class harmonyConn:
 
     	## - pull the function's success (0/1), timestamp, and number of stars
         ## - from the bitstring
-	success, megSec, sec, micSec,numStars = struct.unpack(openState, data[start:next])
-	time = (megSec,sec,micSec)  #tuple for the time stamp
+	success, stateId, numStars = struct.unpack(openState, data[start:next])
 
         ## - increment the bit counters for the bitstring
 	start = next
@@ -154,7 +154,7 @@ class harmonyConn:
 
 	## - loop through and collect all the stars from the bitstring
 	for i in range(numStars):
-	  starId,X,Y,numPlanets = struct.unpack(starInfo,data[start:next])
+	  starId,X,Y,key,numPlanets = struct.unpack(starInfo,data[start:next])
 
 	  ## - increment the bit counters for the bitstring
 	  start = next
@@ -163,9 +163,9 @@ class harmonyConn:
 	  planets = list() # new list for holding the current star's planet
 	  ## - loop through and collect the planets for the current star
 	  for j in range(numPlanets):
-		planetId, speed, angle, radius = struct.unpack(planetInfo, data[start:next])
+		planetId, speed, angle, radius, note = struct.unpack(planetInfo, data[start:next])
 		## - add each planet to the current star's planet list
-		planets.append( ("planet",planetId, speed, angle, radius) ) #planet tuple
+		planets.append( ("planet",planetId, speed, angle, radius, note) ) #planet tuple
 	        
 		## - increment the bit counters for the bitstring
 		start = next
@@ -173,10 +173,47 @@ class harmonyConn:
 	  ## - end of j loop (planets)
     	  
     	  ## - add the current star to the stars list
-	  stars.append(("system", starId,X,Y, planets))
+	  stars.append(("system", starId,X,Y,key, planets))
    	## - end of i loop (stars)
 
 	## - create the final tuple 
-	return (success, ("universe", time, stars))
+	return (success, ("universe", stateId, stars))
 	## - end of get_uni function
+
+   ## ##--------------------------------------------------------------------
+   ## ## Function: location 
+   ## ## Description: makes a request to the server, for all of the planets 
+   ## ##              locations (angles).
+   ## ##--------------------------------------------------------------------
+   def location(self, stateId):
+        ## - make a connection to the server, issue command 16 (gen_UNI)
+        ## -  recieve the response in variable data
+	s = self.makeConnection()
+	p = struct.pack('!BH',32, stateId)
+	s.send(p)
+	data = s.recv(self.UNIbufSize)
+	s.close()
+    
+    	updateInfo = '!BH'
+    	planetInfo = '!HHH'
+
+	start = 0
+	next = struct.calcsize(updateInfo)
+
+    	update, numPlanets = struct.unpack(updateInfo, data[start:next])
+
+	start = next
+	next += struct.calcsize(planetInfo)
+
+	planets = list()
+
+	for i in range(numPlanets):
+		starId, PlanetId, Angle = struct.unpack(planetInfo ,data[start:next])
+		planets.append( (starId, PlanetId, Angle))
+		start = next
+		next += struct.calcsize(planetInfo)
+   	## - end of i loop (stars)
+	
+	return (update, planets)
+	## - end of location function
 

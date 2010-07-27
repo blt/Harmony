@@ -16,17 +16,19 @@ x = harmonyConn('127.0.0.1', 1234)
 print "Add Error", x.addError(33,44)
 
 #test add star
-print "Add Star", x.addStar(32,43)
+print "Add Star", x.addStar(32,43,5)
 
 #test delete star
 print "Del Star", x.delStar(46)
 
 #test add planet
-print "Add Planet", x.addPlanet(23, 43, 23, 23)
+print "Add Planet", x.addPlanet(23, 43, 23, 23, 2)
 
 #test delete planet
 print "Del Planet ", x.delPlanet(32, 43)
 
 #test get universe
-print "getUNI ", x.getUNI()
+print "getUNI ", x.getUNI(1)
 
+#test location
+print "location ", x.location(32)

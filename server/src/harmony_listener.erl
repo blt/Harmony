@@ -14,7 +14,7 @@
 -define(ListenPort,1234).
 
 %%export to logfile = 1, no export !=1 
--define(LogFile, 0).
+-define(LogFile,1).
 
 %%error codes
 -define(ErrorCode,0).
@@ -33,6 +33,8 @@
 -define(PositionSize,16).
 -define(GenVarSize,16).
 -define(CounterSize,16).
+-define(KeySize,8).
+-define(NoteSize,8).
 
 %%====================================================================
 %% API
@@ -116,17 +118,18 @@ loop(Socket) ->
 
 handler(<<Command:?CommandSize, Remaining/bitstring>>) ->
 	case Command of
-	  1 ->  D = addStar(Remaining);
-	  2 ->  D = delStar(Remaining);
-	  4 ->  D = addPlanet(Remaining);
-	  8 ->  D = delPlanet(Remaining);
-	  16 -> D = getUNI(Remaining);
-	  _  -> D = {?ErrorCode, ?CommandFaultCode}
+	  1 ->  DataReturn = addStar(Remaining);
+	  2 ->  DataReturn = delStar(Remaining);
+	  4 ->  DataReturn = addPlanet(Remaining);
+	  8 ->  DataReturn = delPlanet(Remaining);
+	  16 -> DataReturn = getUNI(Remaining);
+	  32 -> DataReturn = location(Remaining);
+	  _  -> DataReturn = {?ErrorCode, ?CommandFaultCode}
 	end,
-	outputFile(?LogFile,tuple_to_list(D)), %output to logfile
-	B = buildBitReturn(D), %build the bitString for return to the sender
-	outputFile(?LogFile, binary_to_list(B)),
-	B;
+	outputFile(?LogFile,tuple_to_list(DataReturn)), %output to logfile
+	BitReturn = buildBitReturn(DataReturn), %build the bitString for return to the sender
+	outputFile(?LogFile, binary_to_list(BitReturn)),
+	BitReturn;
 handler(_T) -> {'Error in input',_T}.
 
 %% %%--------------------------------------------------------------------
@@ -135,71 +138,66 @@ handler(_T) -> {'Error in input',_T}.
 %% %%--------------------------------------------------------------------
 
 %% %% Get UNI output format
-%% %% [0/1], megSec, sec, micro, #stars, starid, x, y
-%% %%       #planets, planetid, angle, speed, radius
-buildBitReturn({ok, {universe, {MegSec,Sec,MicroSec}, System}}) ->
+%% %% [0/1], megSec, sec, micro, #stars, starid, x, y, key
+%% %%       #planets, planetid, angle, speed, radius,note
+buildBitReturn({ok, {universe, StateId, System}}) ->
 	NumSys = length(System),
-	SystemBits = sysDecode({<<>>,System}),
-	<<1:?SuccessSize, 
-		MegSec:?TimeSize, 
-		Sec:?TimeSize, 
-		MicroSec:?TimeSize, 
-		NumSys:?CounterSize, 
-		SystemBits/bitstring>>;
+	SystemBits = binlist(<<>>,lists:map(fun sysFull/1, System)),
+	<<1:?SuccessSize,StateId:?GenVarSize,NumSys:?CounterSize,SystemBits/bitstring>>;
+
+%% %% location output format
+%% %% [0/1], startId, planetId, angle
+buildBitReturn({ok, {State, locations, PlanetList}}) ->
+	NumPlanets = length(PlanetList),
+	PlanetBits = binlist(<<>>, lists:map(fun planetLocation/1, PlanetList)),
+	<<State:?SuccessSize, NumPlanets:?CounterSize, PlanetBits/bitstring>>;
 
 buildBitReturn({ok, ID}) -> <<1:?SuccessSize,ID:?IdSize>>;
-%---------------------------------------------
-%if we choose to send planet and star IDs back
 buildBitReturn({ok, SID, PID}) -> <<1:?SuccessSize,SID:?IdSize, PID:?IdSize>>;
-%---------------------------------------------
-
 buildBitReturn({_,ID}) -> <<?ErrorCode:?SuccessSize,ID:?IdSize>>.
 
 %% %%--------------------------------------------------------------------
-%% %% Function: sysDecode
+%% %% Function: sysFull 
 %% %% Description: Decodes the system data structure to bitstring
 %% %%--------------------------------------------------------------------
-sysDecode({Out, []}) -> <<Out/bitstring>>;
 
-sysDecode({Out, [{system,{star,StarId,StarXpos,StarYpos} ,Planets}|[]]}) -> 
+sysFull({system, {star, StarId, StarXpos, StarYpos, Key}, Planets}) ->
 	NumPlanets = length(Planets),
-	PlanetBits = planetDecode(<<>>, Planets),
-	<<StarId:?IdSize, 
-		StarXpos:?PositionSize, 
-		StarYpos:?PositionSize, 
-		NumPlanets:?CounterSize, 
-		PlanetBits/bitstring,  
-		Out/bitstring>>;
-sysDecode({Out, [{system, {star, StarId, StarXpos, StarYpos}, Planets}|Tail]}) ->
-	NumPlanets = length(Planets),
-	PlanetBits = planetDecode(<<>>, Planets),
-	sysDecode({<<StarId:?IdSize, 
-		StarXpos:?PositionSize, 
-		StarYpos:?PositionSize, 
-		NumPlanets:?CounterSize, 
-		PlanetBits/bitstring,  
-		Out/bitstring>>,
-		Tail}).
+	PlanetBits = binlist(<<>>, lists:map(fun planetFull/1, Planets)),
+	<<StarId:?IdSize,StarXpos:?PositionSize,StarYpos:?PositionSize, 
+		Key:?KeySize,NumPlanets:?CounterSize,PlanetBits/bitstring>>.
 
 %% %%--------------------------------------------------------------------
-%% %% Function:  planetDecode
-%% %% Description: decodes the planet data structure to bitstring
+%% %% Function: planetFull 
+%% %% Description: Decodes the planet data structure to bitstring
 %% %%--------------------------------------------------------------------
-planetDecode(Out, []) ->
-	<<Out/bitstring>>;
 
-planetDecode(Out, [{planet, PlanetId, Angle, Speed, Radius}|[]]) ->
-	<<PlanetId:?IdSize, Angle:?GenVarSize, Speed:?GenVarSize, Radius:?GenVarSize, Out/bitstring>>;
-
-planetDecode(Out, [{planet, PlanetId, Angle, Speed, Radius}|Tail]) -> 
-	planetDecode(<<PlanetId:?IdSize, Angle:?GenVarSize, Speed:?GenVarSize, Radius:?GenVarSize, Out/bitstring>>,Tail).
+planetFull({planet, PlanetId, Angle, Speed, Radius, Note}) ->
+	<<PlanetId:?IdSize,Angle:?GenVarSize,Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize>>.
 
 %% %%--------------------------------------------------------------------
-%% %% Function: addStar(<<XPos, YPos>>) --> {"return statement"}.
+%% %% Function: planetLocation 
+%% %% Description: Decodes the planet data location structure to bitstring
+%% %%--------------------------------------------------------------------
+
+planetLocation({StarId, PlanetId, Angle})->
+	<<StarId:?IdSize, PlanetId:?IdSize, Angle:?GenVarSize>>.
+
+%% %%--------------------------------------------------------------------
+%% %% Function: binlist 
+%% %% Description: turns a list of bitstrings into a single bitstring
+%% %%--------------------------------------------------------------------
+
+binlist(Out, []) -> <<Out/bitstring>>;
+binlist(Out, [Head | []]) ->  <<Head/bitstring, Out/bitstring>>;
+binlist(Out, [Head | Tail]) -> binlist(<<Head/bitstring, Out/bitstring>>, Tail).
+
+%% %%--------------------------------------------------------------------
+%% %% Function: addStar(<<XPos, YPos, Key>>) --> {"return statement"}.
 %% %% Description: calls the add star function from the server
 %% %%--------------------------------------------------------------------
 
-addStar(<<XPos:?PositionSize, YPos:?PositionSize>>) -> test_server:add_star(XPos, YPos);
+addStar(<<XPos:?PositionSize, YPos:?PositionSize, Key:?KeySize>>) -> test_server:add_star(XPos, YPos, Key);
 addStar(_) -> {?ErrorCode, ?AddStarFaultCode}.
 
 %% %%--------------------------------------------------------------------
@@ -211,16 +209,13 @@ delStar(<<StarId:?IdSize>>) -> test_server:del_star(StarId);
 delStar(_) -> {?ErrorCode, ?DelStarFaultCode}.
 
 %% %%--------------------------------------------------------------------
-%% %% Function: addPlanet(<<StarId, Angle, Speed, Radius>>) --> 
+%% %% Function: addPlanet(<<StarId, Angle, Speed, Radius, Note>>) --> 
 %% %%    {"return statement"}.
 %% %% Description: calls the add Planet function from the server
 %% %%--------------------------------------------------------------------
 
-addPlanet(<<StarId:?IdSize, 
-	Angle:?GenVarSize, 
-	Speed:?GenVarSize,
-	Radius:?GenVarSize>>) -> 
-		test_server:add_planet(StarId, Angle, Speed, Radius);
+addPlanet(<<StarId:?IdSize,Angle:?GenVarSize,Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize>>) -> 
+		test_server:add_planet(StarId, Angle, Speed, Radius, Note);
 addPlanet(_) -> {?ErrorCode, ?AddPlanetFaultCode}.
 
 %% %%--------------------------------------------------------------------
@@ -237,8 +232,16 @@ delPlanet(_) -> {?ErrorCode, ?DelPlanetFaultCode}.
 %% %% Description: Calls the get universe function from the server 
 %% %%--------------------------------------------------------------------
 
-getUNI(<<>>) -> test_server:get_uni();
+getUNI(<<StateId:?GenVarSize>>) -> test_server:get_uni(StateId);
 getUNI(_) -> {?ErrorCode, ?GetUNIFaultCode}.
+
+%% %%--------------------------------------------------------------------
+%% %% Function: location(StateId) --> {"return statement"}.
+%% %% Description: Calls the location function from the server 
+%% %%--------------------------------------------------------------------
+
+location(<<StateId:?GenVarSize>>) -> test_server:location(StateId);
+location(_) -> {?ErrorCode, ?GetUNIFaultCode}.
 
 %%--------------------------------------------------------------------
 %% Logging
