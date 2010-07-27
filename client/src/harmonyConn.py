@@ -160,7 +160,7 @@ class harmonyConn:
 	  start = next
 	  next += struct.calcsize(starInfo)
           
-	  planets = list() # new list for holding the current star's planets
+	  planets = list() # new list for holding the current star's planet
 	  ## - loop through and collect the planets for the current star
 	  for j in range(numPlanets):
 		planetId, speed, angle, radius = struct.unpack(planetInfo, data[start:next])
@@ -173,7 +173,7 @@ class harmonyConn:
 	  ## - end of j loop (planets)
     	  
     	  ## - add the current star to the stars list
-	  stars.append(("system", (starId,X,Y), planets))
+	  stars.append(("system", starId,X,Y, planets))
    	## - end of i loop (stars)
 
 	## - create the final tuple 
