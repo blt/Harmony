@@ -14,7 +14,7 @@ location(StateId) -> {ok, {0, locations, [{1,2,340}, {1,3,215}, {1,5,32}, {2,3,1
 %new uni with notes, keys, and StateId
 get_uni(StateId) ->{ok,
     {universe
-	,1
+	,now()
 	    ,[
 	    {system, {star,1,10,10,5}, [{planet,1,10,10,10,2}, {planet,2,20,20,20,4}]}
 	    ,
