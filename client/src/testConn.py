@@ -8,9 +8,12 @@
 import harmonyConn 
 from harmonyConn import *
 
+import lookupCoord
+from lookupCoord import *
 
-#x = harmonyConn('sundhome.com', 1234)
-x = harmonyConn('127.0.0.1', 1234)
+
+x = harmonyConn('sundhome.com', 1234)
+#x = harmonyConn('127.0.0.1', 1234)
 
 #error, invalid command
 print "Add Error", x.addError(33,44)
@@ -32,3 +35,16 @@ print "getUNI ", x.getUNI(1)
 
 #test location
 print "location ", x.location(32)
+
+
+
+#lookup(XCenter, YCenter, Radius)
+c = lookupCoord(0,0,10)
+
+#getLocation(arclength location)
+for i in range(163):
+	print c.getLocation(i)
+
+#getList -- returns the coordinates dictionary
+#print c.getList()
+
