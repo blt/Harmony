@@ -12,9 +12,10 @@ del_planet(StarId, PlanetId) -> {ok, 23}.  %returns PlanetId
 location(StateId) -> {ok, {0, locations, [{1,2,340}, {1,3,215}, {1,5,32}, {2,3,15}, {2,4,359}]}}. 
 
 %new uni with notes, keys, and StateId
-get_uni(StateId) ->{ok,
-    {universe
-	,now()
+get_uni(StateId) ->
+	{MegSec, Sec, MicroSec} = now(),	
+	{ok,
+    {universe ,{Sec, MicroSec}
 	    ,[
 	    {system, {star,1,10,10,5}, [{planet,1,10,10,10,2}, {planet,2,20,20,20,4}]}
 	    ,
@@ -23,17 +24,4 @@ get_uni(StateId) ->{ok,
     }
 }.
 
-get_uni1(StateId) ->{ok,
-    {universe
-	,1
-	    ,[
-	    {system, {star,1,10,10,5}, []}
-	    ,
-      	    {system, {star,2,10,10,1}, [{planet,3,10,10,10,3}, {planet,4,20,20,20,1}]}
-	    ]
-    }
-}.
-
-
-get_uni2(StateId) ->{ok, {universe ,1 ,[]}}.
 

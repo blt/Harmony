@@ -140,7 +140,7 @@ handler(_T) -> {'Error in input',_T}.
 %% %% Get UNI output format
 %% %% [0/1], megSec, sec, micro, #stars, starid, x, y, key
 %% %%       #planets, planetid, angle, speed, radius,note
-buildBitReturn({ok, {universe, {_, Sec, MicroSec}, System}}) ->
+buildBitReturn({ok, {universe, {Sec, MicroSec}, System}}) ->
 	NumSys = length(System),
 	SystemBits = binlist(<<>>,lists:map(fun sysFull/1, System)),
 	<<1:?SuccessSize,Sec:?GenVarSize,MicroSec:?GenVarSize,NumSys:?CounterSize,SystemBits/bitstring>>;
