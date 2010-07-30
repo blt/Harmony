@@ -13,12 +13,14 @@ class lookupCoord:
    ## ## Function: constructor.
    ## ## Description: initialize the class instant, input: ring info 
    ## ##--------------------------------------------------------------------
-    def __init__(self, Xcenter, Ycenter, Radius):
+    def __init__(self, Xcenter, Ycenter, Radius, Angle):
 	self.Xcenter = Xcenter
 	self.Ycenter = Ycenter
 	self.Radius = Radius
+	self.Angle = Angle
 	self.Circum = math.pi * 2 * Radius
 	self.CIndex = math.ceil(self.Circum)  
+    	self.firstPosition = round((self.Angle * self.Circum)/360)
 	self.coords = {} 
 	self.__buildList()
    ## - end of constructor

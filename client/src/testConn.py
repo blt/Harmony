@@ -38,11 +38,14 @@ print "location ", x.location(32)
 
 
 
-#lookup(XCenter, YCenter, Radius)
-c = lookupCoord(0,0,10)
+#lookup(XCenter, YCenter, Radius, Angle)
+c = lookupCoord(0,0,10,270)
+
+firstP = c.firstPosition
+print firstP
 
 #getLocation(arclength location)
-for i in range(163):
+for i in range(int(firstP), 63):
 	print c.getLocation(i)
 
 #getList -- returns the coordinates dictionary
