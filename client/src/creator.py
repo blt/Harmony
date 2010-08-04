@@ -23,7 +23,7 @@ PENTATONIC = dict({ 'F': ['F','C','G','D','A'],
 
 class Creator(object):
 
-    CoU = None #center of the universe
+    CoU = [] #center of the universe
     view = None
     viewrect = None
 
@@ -67,6 +67,7 @@ class Creator(object):
         self.viewrect = self.view.get_rect()
         self.viewClear = Surface(screen.get_size())
         self.screen = screen
+        self.CoU = [screen.get_width()/2, screen.get_height()/2]
 
     # Whenever there is an update from the network
     # a new timestamp is sent which is the time
@@ -235,25 +236,29 @@ class Creator(object):
  
     def scroll_right(self):
         self.xbound += self.scrollDist
+        self.CoU[0] += self.scrollDist
 
     def scroll_left(self):
         if self.xbound >= self.scrollDist:
             self.xbound -= self.scrollDist
+            self.CoU[0] -= self.scrollDist
 
     def scroll_down(self):
         self.ybound += self.scrollDist
+        self.CoU[1] += self.scrollDist
 
     def scroll_up(self):
         if self.ybound >= self.scrollDist:
             self.ybound -= self.scrollDist
+            self.CoU[1] -= self.scrollDist
 
     def draw_universe(self):
         self.ssSprites.clear(self.view, self.viewClear)
         for ss in self.ssSprites.sprites():
-            print "inc"
 	    ss.update_pos(self.xbound, self.ybound)
+            ss.update_focus(mouse.get_pos())
 
-        self.ssSprites.update()
+        self.ssSprites.update(self.CoU)
         self.ssSprites.draw(self.view)
 
         self.screen.blit(self.view, self.viewrect)

@@ -25,13 +25,14 @@ class Harmony(object):
     
     def __init__(self, res=(0,0)):
         pygame.init()
+        pygame.mixer.init()
         self.screen = pygame.display.set_mode(res,
                                                RESIZABLE|FULLSCREEN)
         self.creator = Creator(self.screen)
         self.hConn = harmonyConn('sundhome.com', 1234)
         self.updateQ = UpdateQ(self.hConn)
         self.ui = HarmonyUi(self.screen, self.creator.get_mouse_pos())
-
+      
     def parse_update(self, update):
         if update[0] == 'universe':
             self.creator.update_time(self.updateQ.timestamp)
@@ -62,6 +63,9 @@ class Harmony(object):
     def graphics_tick(self):
         self.handle_events()
         self.creator.draw_universe()
+        self.ui.create_fields()
+        self.ui.draw_ui()
+        self.screen.blit(self.ui.image, self.ui.rect)
         pygame.display.flip()
 
     def network_tick(self):

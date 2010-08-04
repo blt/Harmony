@@ -14,6 +14,9 @@ from lookupCoord import *
 ## updates separate Sprite Groups
 ## for each object type.
 
+NOTES = ['A','A#','B','C','C#','D',
+         'D#','E','F','F#','G','G#']
+
 class SolarSystem(pygame.sprite.Sprite):
 
     pSprites = None
@@ -32,8 +35,9 @@ class SolarSystem(pygame.sprite.Sprite):
 
     def __init__(self, pos, id, key, size=(220,220)):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface(size)
+        self.image = pygame.Surface(size).convert()
         self.rect = self.image.get_rect(center=pos)
+        self.image.set_colorkey(self.image.get_at((0,0)), pygame.RLEACCEL)
         self.pos = pos
         self.relposx = pos[0]
         self.relposy = pos[1]
@@ -57,12 +61,14 @@ class SolarSystem(pygame.sprite.Sprite):
         angle = 2
         speed = 3
         radius = 4
+        note = 5
+        pos = (self.centerx, self.centery)
         
         attrs = (planet[radius],  
                  planet[speed],
                  planet[angle])
  
-        newPlanet = Planet(attrs, planet[pid], time)
+        newPlanet = Planet(attrs, planet[pid], pos, time, NOTES[note])
    	self.pSprites.add(newPlanet)
 
         return newPlanet
@@ -72,7 +78,7 @@ class SolarSystem(pygame.sprite.Sprite):
     def update_pos(self, xbound, ybound):
         self.relposx = self.pos[0] - xbound
         self.relposy = self.pos[1] - ybound
-        self.rect = self.image.get_rect(center=(self.relposx, self.relposy)) 
+        self.rect.center=(self.relposx, self.relposy) 
 
     # Determines whether the mouse pointer is contained
     # within the solar system rect
@@ -86,18 +92,54 @@ class SolarSystem(pygame.sprite.Sprite):
     # draw sprite groups on self surface.  Only show
     # rings if mouse is within solar system rect: ie
     # self.foucs is set to true
-    def update(self):
+    def update(self, cou):
         clearBg = Surface(self.size)
 
+        self.pSprites.clear(self.image, clearBg)
         self.rSprites.clear(self.image, clearBg)
         if self.focus:
             self.rSprites.draw(self.image)
+ 
+        vol = self.get_volume(cou)
 
-        self.pSprites.clear(self.image, clearBg)
-	self.pSprites.update()
+	self.pSprites.update(vol)
         self.pSprites.draw(self.image)
 
         self.image.blit(self.star.image, self.star.rect)
+
+    # Determine the volume of the system based on 
+    # proximity to the center of the universe
+    def get_volume(self, cou):
+        xdist = 0
+        ydist = 0
+        centerx = self.star.rect.centerx
+        centery = self.star.rect.centery
+        volume = 0.5
+        if centerx < cou[0]:
+            xdist = cou[0] - centerx
+        else:
+	    xdist = centerx - cou[0]
+ 
+        if centery < cou[1]:
+            ydist = cou[1] - centery
+        else:
+	    ydist = centery - cou[1]
+
+	if xdist < 200 and ydist < 200:
+	    volume = 0.5
+        elif xdist < 400 and ydist < 400:
+            volume = 0.4
+        elif xdist < 600 and ydist < 600:
+            volume = 0.3
+        elif xdist < 800 and ydist < 800:
+            volume = 0.2
+        elif xdist < 1000 and ydist < 1000:
+            volume = 0.1
+        else:
+            volume = 0
+
+        return volume
+           
 
 
     # Initialize the rings and add them to 
