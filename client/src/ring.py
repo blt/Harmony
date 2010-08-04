@@ -14,7 +14,8 @@ class Ring(pygame.sprite.Sprite):
     def __init__(self, pos, num, name):
         pygame.sprite.Sprite.__init__(self)
         self.image_pth = os.path.join(os.environ["HARMONY_MEDIA_DIR"],
-					name)
+       					name)
+       # self.image_pth = os.path.join('../media', name)
         self.image = image.load(self.image_pth).convert()
         self.rect = self.image.get_rect(center = pos)
         self.image.set_colorkey(self.image.get_at((0,0)), pygame.RLEACCEL)
