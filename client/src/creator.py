@@ -34,6 +34,12 @@ class Creator(object):
     # planets in the universe.  It is used
     # only for tracking planet collisions.
     pSprites = None 
+
+    # dictionary of star ids as keys and 
+    # a list of planets as values.  Any 
+    # planet involved in a collision will
+    # be added to this dictionary
+    collSet = set([]) 
     
     # ssSprites contains all the solarsystems
     # and will allow the creator to update 
@@ -252,13 +258,22 @@ class Creator(object):
             self.ybound -= self.scrollDist
             self.CoU[1] -= self.scrollDist
 
+    def update_collisions(self):
+        collplanets = []
+        self.collSet = set([]) # empty the set
+ 	for planet in self.pSprites.sprites():
+            collplanets += pygame.sprite.spritecollide(planet, self.pSprites, False)
+	                         
+        #eliminate duplicates
+        self.collSet = set(collplanets)
+
     def draw_universe(self):
         self.ssSprites.clear(self.view, self.viewClear)
         for ss in self.ssSprites.sprites():
 	    ss.update_pos(self.xbound, self.ybound)
             ss.update_focus(mouse.get_pos())
 
-        self.ssSprites.update(self.CoU)
+        self.ssSprites.update(self.CoU, self.collSet)
         self.ssSprites.draw(self.view)
 
         self.screen.blit(self.view, self.viewrect)

@@ -41,6 +41,7 @@ class Harmony(object):
 
     def handle_events(self):
          mousePos = self.creator.get_mouse_pos()
+         key_pressed = pygame.key.get_pressed()
 	 for event in pygame.event.get():
             if   event.type == pygame.QUIT: sys.exit(0)
             elif event.type == pygame.KEYDOWN:
@@ -51,17 +52,19 @@ class Harmony(object):
                 elif event.key == K_s:
                     self.hConn.addStar(mousePos[0], mousePos[1], 
                			       self.ui.get_edit_key())
-                elif event.key == K_RIGHT:
-                    self.creator.scroll_right()
-                elif event.key == K_LEFT:
-                    self.creator.scroll_left()
-                elif event.key == K_DOWN:
-                    self.creator.scroll_down()
-                elif event.key == K_UP:
-                    self.creator.scroll_up()
+                
+         if key_pressed[K_RIGHT]:
+             self.creator.scroll_right()
+         if key_pressed[K_LEFT]:
+             self.creator.scroll_left()
+         if key_pressed[K_DOWN]:
+             self.creator.scroll_down()
+         if key_pressed[K_UP]:
+             self.creator.scroll_up()
 
     def graphics_tick(self):
         self.handle_events()
+        self.creator.update_collisions()
         self.creator.draw_universe()
         self.ui.create_fields()
         self.ui.draw_ui()

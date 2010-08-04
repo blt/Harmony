@@ -92,7 +92,7 @@ class SolarSystem(pygame.sprite.Sprite):
     # draw sprite groups on self surface.  Only show
     # rings if mouse is within solar system rect: ie
     # self.foucs is set to true
-    def update(self, cou):
+    def update(self, cou, collSet):
         clearBg = Surface(self.size)
 
         self.pSprites.clear(self.image, clearBg)
@@ -102,7 +102,7 @@ class SolarSystem(pygame.sprite.Sprite):
  
         vol = self.get_volume(cou)
 
-	self.pSprites.update(vol)
+	self.pSprites.update(vol, collSet)
         self.pSprites.draw(self.image)
 
         self.image.blit(self.star.image, self.star.rect)

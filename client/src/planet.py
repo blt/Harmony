@@ -17,8 +17,6 @@ class Planet(pygame.sprite.Sprite):
     speed = 0
     radius = 0
     angle = 0
-    vertx = 0
-    verty = 0
     time = 0
     note = None
     sound = None
@@ -37,7 +35,7 @@ class Planet(pygame.sprite.Sprite):
         self.lookUp = lookupCoord(pos[0], pos[1], self.radius, self.angle)
         self.set_startpos()
         self.load_sound()
-        self.update(0.5)
+        self.update(0.5, None)
         self.sound.play(-1)
 
     def load_sound(self):   
@@ -57,12 +55,15 @@ class Planet(pygame.sprite.Sprite):
         self.vertx = loc[1]
         self.verty = loc[2]
                 
-    def update(self, vol):
+    def update(self, vol, collSet):
         self.rect.center = (self.vertx, self.verty)
         
         self.pos += self.speed
         loc = self.lookUp.getLocation(int(self.pos))
         self.vertx = loc[1]
         self.verty = loc[2]
-   
+
+        if collSet and self.pid in collSet:
+   	    vol = 0.0
+
         self.sound.set_volume(vol)
