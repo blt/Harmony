@@ -1,12 +1,14 @@
 %%%-------------------------------------------------------------------
 %%% File    : harmony_sup.erl
-%%% Author  : Brian L. Troutwine <brian@troutwine.us>
+%%% Authors : Brian L. Troutwine <brian@troutwine.us>
+%%%           Jared T. Sund      <jaredsund@gmail.com>
+%%%           Cameron Kidd       <cameron.kidd@gmail.com>
 %%% Description : Lead supervisor for harmony.
 %%%
-%%% Created :  7 Jul 2010 by Brian L. Troutwine <brian@troutwine.us>
+%%% Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
+%%% This code is licensed under the MIT license, see distributed copy.
 %%%-------------------------------------------------------------------
 -module(harmony_sup).
-
 -behaviour(supervisor).
 
 %% API
@@ -50,10 +52,11 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 
-    AChild = {harmony_server, {harmony_server, start_link, []},
-              Restart, Shutdown, Type, [harmony_server]},
+    Universe = universe,
+    UChild = {Universe, {Universe, start_link, []},
+              Restart, Shutdown, Type, [Universe]},
 
-    {ok, {SupFlags, [AChild]}}.
+    {ok, {SupFlags, [UChild]}}.
 
 %%====================================================================
 %% Internal functions

@@ -1,12 +1,14 @@
 %%%-------------------------------------------------------------------
 %%% File    : harmony_app.erl
-%%% Author  : Brian L. Troutwine <brian@troutwine.us>
-%%% Description :
+%%% Authors : Brian L. Troutwine <brian@troutwine.us>
+%%%           Jared T. Sund      <jaredsund@gmail.com>
+%%%           Cameron Kidd       <cameron.kidd@gmail.com>
+%%% Description : Haromny OTP application module.
 %%%
-%%% Created :  7 Jul 2010 by Brian L. Troutwine <brian@troutwine.us>
+%%% Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
+%%% This code is licensed under the MIT license, see distributed copy.
 %%%-------------------------------------------------------------------
 -module(harmony_app).
-
 -behaviour(application).
 
 %% Application callbacks

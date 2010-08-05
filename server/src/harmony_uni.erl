@@ -1,12 +1,14 @@
 %%%-------------------------------------------------------------------
-%%% File    : harmony_server.erl
-%%% Author  : Brian L. Troutwine <blt@doritos>
-%%% Description :
+%%% File    : harmony_uni.erl
+%%% Authors : Brian L. Troutwine <brian@troutwine.us>
+%%%           Jared T. Sund      <jaredsund@gmail.com>
+%%%           Cameron Kidd       <cameron.kidd@gmail.com>
+%%% Description : Persistent core of Harmony.
 %%%
-%%% Created :  8 Jul 2010 by Brian L. Troutwine <blt@doritos>
+%%% Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
+%%% This code is licensed under the MIT license, see distributed copy.
 %%%-------------------------------------------------------------------
--module(harmony_server).
-
+-module(harmony_uni).
 -behaviour(gen_server).
 
 %% API
