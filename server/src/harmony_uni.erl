@@ -13,19 +13,19 @@
 
 %% API
 -export([start_link/0, add_star/2, del_star/1]).
--export([add_planet/4, del_planet/2, get_uni/0]).
+-export([add_planet/4, del_planet/2, get_uni/1]).
 -export([load/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--define(TICKMOD, 10).
 -define(TIMEOUT, 150).
 -define(SERVER, ?MODULE).
--record(state, {tick=0, utab, objs=0}).
+
+-record(state, {bigbang, objs=0}).
+
 -include("harmony.hrl").
--include_lib("eunit/include/eunit.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
 %%====================================================================
@@ -85,8 +85,8 @@ add_planet(StarId, Angle, Speed, Radius) ->
 del_planet(StarId, PlanetId) ->
     gen_server:call(?SERVER, {del_planet, StarId, PlanetId}, ?TIMEOUT).
 
-get_uni() ->
-    gen_server:call(?SERVER, get_uni, ?TIMEOUT).
+get_uni(Time) ->
+    gen_server:call(?SERVER, {get_uni, Time}, ?TIMEOUT).
 
 %%====================================================================
 %% gen_server callbacks
@@ -106,11 +106,11 @@ init([]) ->
                                    {type, bag}]),
     mnesia:create_schema([node()|nodes()]),
     mnesia:start(),
-    State = #state{},
+    State = #state{bigbang=uninow()},
     {ok, State}.
 
 %%--------------------------------------------------------------------
-%% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |
+%% handle_call(Request, From, State) -> {reply, Reply, State} |
 %%                                      {reply, Reply, State, Timeout} |
 %%                                      {noreply, State} |
 %%                                      {noreply, State, Timeout} |
@@ -169,27 +169,30 @@ handle_call({del_planet, StarId, PlanetId}, _From, State) ->
     Reply = {ok, PlanetId},
     {reply, Reply, State};
 
-handle_call(get_uni, _From, State) ->
+handle_call({get_uni, Time}, _From, State) ->
     F = fun() ->
-                Stars = qlc:e(all_stars()),
+                Stars = qlc:e(all_stars(Time)),
                 Sys = [#system{star=S,
-                               planets=qlc:e(all_planets(S))}
+                               planets=qlc:e(all_planets(S, Time))}
                        || S <- Stars],
-                #universe{time=now(), stars=Sys}
+                #universe{time=uninow(), stars=Sys}
         end,
     {atomic, U} = mnesia:transaction(F),
     Reply = {ok, U},
     {reply, Reply, State}.
 
-all_stars() ->
-    qlc:q([S || S <- mnesia:table(star)]).
+all_stars(Time) ->
+    qlc:q([S || S <- mnesia:table(star),
+                time_ge(S#star.created >= Time)
+          ]).
 
-all_planets(Star) ->
+all_planets(Star, Time) ->
     qlc:q([P ||
               P <- mnesia:table(planet),
               O <- mnesia:table(in_orbit),
               Star#star.id == O#in_orbit.star_id,
-              P#planet.id  == O#in_orbit.planet_id
+              P#planet.id  == O#in_orbit.planet_id,
+              time_ge(P#planet.created >= Time)
           ]).
 
 
