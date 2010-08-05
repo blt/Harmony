@@ -183,7 +183,7 @@ handle_call({get_uni, Time}, _From, State) ->
 
 all_stars(Time) ->
     qlc:q([S || S <- mnesia:table(star),
-                time_ge(S#star.created >= Time)
+                time_ge(S#star.created,Time)
           ]).
 
 all_planets(Star, Time) ->
@@ -192,7 +192,7 @@ all_planets(Star, Time) ->
               O <- mnesia:table(in_orbit),
               Star#star.id == O#in_orbit.star_id,
               P#planet.id  == O#in_orbit.planet_id,
-              time_ge(P#planet.created >= Time)
+              time_ge(P#planet.created,Time)
           ]).
 
 
