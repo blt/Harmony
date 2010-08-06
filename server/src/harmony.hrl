@@ -1,16 +1,16 @@
 -type(id() :: integer()).
--type(time() :: {integer(), integer()}).
+-type(time() :: {integer(), integer(), integer()}).
 
-time_ge({Sec0, Msec0}, {Sec1, Msec1}) ->
-    T0 = Sec0 + Msec0/1000000,
-    T1 = Sec1 + Msec1/1000000,
+time_ge({Msec0, Sec0, Usec0}, {Msec1, Sec1, Usec1}) ->
+    T0 = Msec0*1000000 + Sec0 + Usec0/1000000,
+    T1 = Msec1*1000000 + Sec1 + Usec1/1000000,
     T0 >= T1.
 
 -record(star, {id      :: id(),
                xpos    :: integer(),
                ypos    :: integer(),
                key     :: integer(),
-               created=uninow() :: time()
+               created=erlang:now() :: time()
               }).
 
 -record(planet, {id        :: id(),
@@ -18,7 +18,7 @@ time_ge({Sec0, Msec0}, {Sec1, Msec1}) ->
                  speed     :: integer(),
                  angle     :: integer(),
                  note      :: integer(),
-                 created=uninow() :: time()
+                 created=erlang:now() :: time()
                 }).
 
 -record(in_orbit, {planet_id :: id(),

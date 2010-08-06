@@ -95,7 +95,7 @@ init([]) ->
                                    {type, bag}]),
     mnesia:create_schema([node()|nodes()]),
     mnesia:start(),
-    State = #state{bigbang=uninow()},
+    State = #state{bigbang=erlang:now()},
     {ok, State}.
 
 %%--------------------------------------------------------------------
@@ -165,7 +165,7 @@ handle_call({get_uni, Time}, _From, State) ->
                 Sys = [#system{star=S,
                                planets=qlc:e(all_planets(S, Time))}
                        || S <- Stars],
-                #universe{time=uninow(), stars=Sys}
+                #universe{time=erlang:now(), stars=Sys}
         end,
     {atomic, U} = mnesia:transaction(F),
     Reply = {ok, U},
