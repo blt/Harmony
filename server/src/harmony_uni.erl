@@ -19,7 +19,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--define(TIMEOUT, 150).
 -define(SERVER, ?MODULE).
 
 -record(state, {bigbang, objs=0}).
@@ -247,6 +246,11 @@ map_(F, [H|T]) ->
     map_(F, T);
 map_(_F, []) ->
     ok.
+
+time_ge({Msec0, Sec0, Usec0}, {Msec1, Sec1, Usec1}) ->
+    T0 = Msec0*1000000 + Sec0 + Usec0/1000000,
+    T1 = Msec1*1000000 + Sec1 + Usec1/1000000,
+    T0 >= T1.
 
 %%--------------------------------------------------------------------
 %% Tests

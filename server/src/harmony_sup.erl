@@ -56,11 +56,16 @@ init([]) ->
     UChild = {Universe, {Universe, start_link, []},
               Restart, Shutdown, Type, [Universe]},
 
+    % get env instead of static set log path and port number
+    Logger = harmony_logger,
+    LgChild = {Logger, {Logger, start_link, ["/tmp/harmony.log"]},
+              Restart, Shutdown, Type, [Logger]},
+
     Listener = harmony_listener,
     LChild = {Listener, {Listener, start_link, [1234]},
               Restart, Shutdown, Type, [Listener]},
 
-    {ok, {SupFlags, [UChild, LChild]}}.
+    {ok, {SupFlags, [LgChild, UChild, LChild]}}.
 
 %%====================================================================
 %% Internal functions

@@ -1,4 +1,4 @@
-dist_erl_DATA = harmony_app.erl harmony_sup.erl harmony_uni.erl harmony_listener.erl
+dist_erl_DATA = harmony_app.erl harmony_sup.erl harmony_uni.erl harmony_listener.erl harmony_logger.erl
 erldir = $(ERLANG_INSTALL_LIB_DIR_harmony)/src
 dist_hrl_DATA = harmony.hrl
 hrldir = $(ERLANG_INSTALL_LIB_DIR_harmony)/include
