@@ -1,9 +1,14 @@
-###-----------------------------------------------------------
-### File 	: lookupCoord.py
-### Author:	: Jared T. Sund <jaredsund@gmail.com>>
-### Description :
+###-------------------------------------------------------------------
+### File    : lookupCoord.py
+### Authors : Brian L. Troutwine <brian@troutwine.us>
+###           Jared T. Sund      <jaredsund@gmail.com>
+###           Cameron Kidd       <cameron.kidd@gmail.com>
+### Description : This class calculates and stores the angular
+###               positions for a provided planet incremented
+###               in 1 arc-length
 ###
-### Created 	: 29 Jul 2010 by Jared T. Sund <jaredsund@gmail.com>
+### Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
+### This code is licensed under the MIT license, see distributed copy.
 ###-----------------------------------------------------------
 import math
 
@@ -24,7 +29,6 @@ class lookupCoord:
 	self.coords = {} 
 	self.__buildList()
    ## - end of constructor
-	
 
    ## ##--------------------------------------------------------------------
    ## ## Function: private buildList function
@@ -37,7 +41,7 @@ class lookupCoord:
 	   Xstep = math.cos(math.radians(Theta))*self.Radius
 	   Ystep = math.sin(math.radians(Theta))*self.Radius
 	   if self.coords.has_key(i) == False:
-	      self.coords[i] = (i,round(Xstep+self.Xcenter),round(Ystep+self.Ycenter))
+	      self.coords[i] = (i,round(Xstep+self.Xcenter),round(Ystep+self.Ycenter), round(Theta))
 	return
    ## - end of buildList function
 
@@ -52,7 +56,6 @@ class lookupCoord:
 	else:
 	 	return arcInt 
    ## - end of getLocation function 
-
 
    ## ##--------------------------------------------------------------------
    ## ## Function: getList

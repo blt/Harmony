@@ -1,11 +1,15 @@
-###-----------------------------------------------------------
-### File 	: harmonyConn.py
-### Author:	: Jared T. Sund <jaredsund@gmail.com>>
+###-------------------------------------------------------------------
+### File    : harmonyConn.py
+### Authors : Brian L. Troutwine <brian@troutwine.us>
+###           Jared T. Sund      <jaredsund@gmail.com>
+###           Cameron Kidd       <cameron.kidd@gmail.com>
 ### Description : python class for sending information to the
 ###		  harmony erlang server
 ###
-### Created 	: 23 Jul 2010 by Jared T. Sund <jaredsund@gmail.com>
-###-----------------------------------------------------------
+### Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
+### This code is licensed under the MIT license, see distributed copy.
+###-------------------------------------------------------------------
+
 import socket
 import struct
 
@@ -179,41 +183,4 @@ class harmonyConn:
 	## - create the final tuple 
 	return (success, (Sec, MicroSec), ("universe", stateId, stars))
 	## - end of get_uni function
-
-   ## ##--------------------------------------------------------------------
-   ## ## Function: location 
-   ## ## Description: makes a request to the server, for all of the planets 
-   ## ##              locations (angles).
-   ## ##--------------------------------------------------------------------
-   def location(self, stateId):
-        ## - make a connection to the server, issue command 16 (gen_UNI)
-        ## -  recieve the response in variable data
-	s = self.makeConnection()
-	p = struct.pack('!BH',32, stateId)
-	s.send(p)
-	data = s.recv(self.UNIbufSize)
-	s.close()
-    
-    	updateInfo = '!BH'
-    	planetInfo = '!HHH'
-
-	start = 0
-	next = struct.calcsize(updateInfo)
-
-    	update, numPlanets = struct.unpack(updateInfo, data[start:next])
-
-	start = next
-	next += struct.calcsize(planetInfo)
-
-	planets = list()
-
-	for i in range(numPlanets):
-		starId, PlanetId, Angle = struct.unpack(planetInfo ,data[start:next])
-		planets.append( (starId, PlanetId, Angle))
-		start = next
-		next += struct.calcsize(planetInfo)
-   	## - end of i loop (stars)
-	
-	return (update, planets)
-	## - end of location function
 

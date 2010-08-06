@@ -1,10 +1,6 @@
 -type(id() :: integer()).
 -type(time() :: {integer(), integer()}).
 
-uninow() ->
-    {Msec, Sec, Usec} = erlang:now(),
-    {Msec*1000000+Sec, Usec}.
-
 time_ge({Sec0, Msec0}, {Sec1, Msec1}) ->
     T0 = Sec0 + Msec0/1000000,
     T1 = Sec1 + Msec1/1000000,
