@@ -14,13 +14,9 @@
 %% API
 -export([init/1, code_change/3, handle_call/3, handle_cast/2]).
 -export([handle_info/2, terminate/2, accept_loop/1]).
--export([start_link/1]).
+-export([start_link/1, addStar/1]).
 
--define(TCP_OPTIONS, [binary, {packet, 0}, {active, false},
-                      {reuseaddr, true}]).
-
-%%export to logfile = 1, no export !=1
--define(LogFile,0).
+-define(TCP_OPTIONS, [binary, {active, false}]).
 
 %%error codes
 -define(ErrorCode,0).
@@ -67,9 +63,12 @@ start_link(Port) ->
 %% port.
 %%--------------------------------------------------------------------
 init(State=#server_state{port=Port}) ->
+    harmony_logger:info("Harmony Listener online!"),
     case gen_tcp:listen(Port, ?TCP_OPTIONS) of
         {ok, LSocket} ->
             NewState = State#server_state{lsocket = LSocket},
+            harmony_logger:info("Listening on socket: ~p",
+                                [inet:sockname(LSocket)]),
             {ok, accept(NewState)};
         {error, Reason} ->
             {stop, Reason}
@@ -83,16 +82,21 @@ handle_cast({accepted, _Pid}, State=#server_state{}) ->
 %% Description:
 %%--------------------------------------------------------------------
 accept_loop({Server, LSocket}) ->
+    harmony_logger:info("Listener accept_loop entered."),
     {ok, LSocket} = gen_tcp:accept(LSocket),
+    harmony_logger:info("Accepted from peer ~p",
+                        [inet:peername(LSocket)]),
     gen_server:cast(Server, {accepted, self()}),
     loop(LSocket).
 
 loop(Socket) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-            outputFile(?LogFile, ['---log entry', date(), time()]),
-	    gen_tcp:send(Socket, handler(Data)),
-            outputFile(?LogFile, tuple_to_list(inet:peername(Socket))),
+            Encoded = handler(Data),
+            harmony_logger:info("Sending data ~p encoded as ~p.~n",
+                     [Data, Encoded]),
+	    gen_tcp:send(Socket, Encoded),
+            harmony_logger:info("Data transmition complete.~n"),
 	    loop(Socket);
 	{error, closed} ->
 	    ok
@@ -103,7 +107,9 @@ loop(Socket) ->
 %% Description:
 %%--------------------------------------------------------------------
 accept(State = #server_state{lsocket=LSocket}) ->
-    proc_lib:spawn(?MODULE, accept_loop, [{self(), LSocket}]),
+    harmony_logger:info("Will spawn new accept_loop"),
+    Pid = proc_lib:spawn(?MODULE, accept_loop, [{self(), LSocket}]),
+    harmony_logger:info("New accept_loop has pid: ~p", [Pid]),
     State.
 
 %%--------------------------------------------------------------------
@@ -157,10 +163,8 @@ handler(<<Command:?CommandSize, Remaining/bitstring>>) ->
         16 -> DataReturn = getUNI(Remaining);
         _  -> DataReturn = {?ErrorCode, ?CommandFaultCode}
     end,
-    outputFile(?LogFile,tuple_to_list(DataReturn)), %output to logfile
     %build the bitString for return to the sender
     BitReturn = buildBitReturn(DataReturn),
-    outputFile(?LogFile, binary_to_list(BitReturn)),
     BitReturn;
 handler(_T) -> {'Error in input',_T}.
 
@@ -274,16 +278,6 @@ delPlanet(_) -> {?ErrorCode, ?DelPlanetFaultCode}.
 
 getUNI(<<StateId:?GenVarSize>>) -> ?UNI:get_uni(StateId);
 getUNI(_) -> {?ErrorCode, ?GetUNIFaultCode}.
-
-%%--------------------------------------------------------------------
-%% Logging
-%%--------------------------------------------------------------------
-
-outputFile(1,Message) ->
-    {ok, Fd} = file:open("log_file",[append]),
-    io:fwrite(Fd, "~w~n", [Message]),
-    file:close(Fd);
-outputFile(_,_) -> nolog.
 
 %%--------------------------------------------------------------------
 %% Surpress Warnings
