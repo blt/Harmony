@@ -40,7 +40,9 @@
 -define(NoteSize,8).
 
 -define(SERVER,?MODULE).
+%-define(UNI, test_server).
 -define(UNI, harmony_uni).
+
 
 %%====================================================================
 %% API

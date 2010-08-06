@@ -1,10 +1,12 @@
-###-----------------------------------------------------------
-### File 	: test.py
-### Author:	: Jared T. Sund <jaredsund@gmail.com>>
-### Description :
+###-------------------------------------------------------------------
+### File    : testConn.py
+### Authors : Brian L. Troutwine <brian@troutwine.us>
+###           Jared T. Sund      <jaredsund@gmail.com>
+###           Cameron Kidd       <cameron.kidd@gmail.com>
+### Description : test file
 ###
-### Created 	: 23 Jul 2010 by Jared T. Sund <jaredsund@gmail.com>
-###-----------------------------------------------------------
+### Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
+
 import harmonyConn 
 from harmonyConn import *
 
@@ -33,14 +35,18 @@ print "Del Planet ", x.delPlanet(32, 43)
 #test get universe
 print "getUNI ", x.getUNI(1)
 
-#test location
-print "location ", x.location(32)
 
 
+###-----------------------------------------------------------
+###-----------------------------------------------------------
+###-----------------------------------------------------------
+###-----------------------------------------------------------
 
 #lookup(XCenter, YCenter, Radius, Angle)
 c = lookupCoord(0,0,10,270)
 
+#get the first arclength position based on the 
+    #planets startup angle
 firstP = c.firstPosition
 print firstP
 
