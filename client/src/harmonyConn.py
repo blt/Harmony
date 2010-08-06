@@ -138,7 +138,7 @@ class harmonyConn:
 	s.close()
 
         ## - bit sizes for incomming data
-	openState = '!BHHH' #8,32,32,32,16: success/failure, megsec,sec,microsec,#stars
+	openState = '!BIHHH' #8,32,32,32,16: success/failure, megsec,sec,microsec,#stars
 	starInfo = '!HHHBH'  #16,16,16,16: starId, XPos, YPos, Key, #planets
 	planetInfo = '!HHHHB' #16,16,16,16: planetId, angle, speed, radius, Note
 
@@ -148,7 +148,7 @@ class harmonyConn:
 
     	## - pull the function's success (0/1), timestamp, and number of stars
         ## - from the bitstring
-	success, Sec, MicroSec, numStars = struct.unpack(openState, data[start:next])
+	success, MegSec, Sec, MicroSec, numStars = struct.unpack(openState, data[start:next])
 
         ## - increment the bit counters for the bitstring
 	start = next
@@ -181,6 +181,6 @@ class harmonyConn:
    	## - end of i loop (stars)
 
 	## - create the final tuple 
-	return (success, (Sec, MicroSec), ("universe", stateId, stars))
+	return (success, (MegSec, Sec, MicroSec), ("universe", stateId, stars))
 	## - end of get_uni function
 
