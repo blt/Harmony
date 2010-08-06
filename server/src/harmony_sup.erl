@@ -58,11 +58,13 @@ init([]) ->
 
     % get env instead of static set log path and port number
     Logger = harmony_logger,
-    LgChild = {Logger, {Logger, start_link, ["/tmp/harmony.log"]},
+    {ok, Log} = application:get_env(harmony, log_file),
+    LgChild = {Logger, {Logger, start_link, [Log]},
               Restart, Shutdown, Type, [Logger]},
 
     Listener = harmony_listener,
-    LChild = {Listener, {Listener, start_link, [1234]},
+    {ok, Port} = application:get_env(harmony, listen_port),
+    LChild = {Listener, {Listener, start_link, [Port]},
               Restart, Shutdown, Type, [Listener]},
 
     {ok, {SupFlags, [LgChild, UChild, LChild]}}.
