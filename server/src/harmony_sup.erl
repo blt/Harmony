@@ -52,11 +52,14 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 
-    Universe = universe,
+    Universe = harmony_uni,
     UChild = {Universe, {Universe, start_link, []},
               Restart, Shutdown, Type, [Universe]},
+    Listener = harmony_listener,
+    LChild = {Listener, {Listener, start_link, []},
+              Restart, Shutdown, Type, [Listener]},
 
-    {ok, {SupFlags, [UChild]}}.
+    {ok, {SupFlags, [UChild, LChild]}}.
 
 %%====================================================================
 %% Internal functions

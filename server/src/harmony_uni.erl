@@ -12,9 +12,8 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, add_star/2, del_star/1]).
--export([add_planet/4, del_planet/2, get_uni/1]).
--export([load/0]).
+-export([start_link/0, add_star/3, del_star/1]).
+-export([add_planet/5, del_planet/2, get_uni/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -37,16 +36,6 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
-
-% Populating a server by hand sucks.
-load() ->
-    {ok, S0} = add_star(10,10),
-    {ok, _P0} = add_planet(S0, 10,10,10),
-    {ok, _P1} = add_planet(S0, 10,10,20),
-    {ok, S1} = add_star(10,10),
-    {ok, _P2} = add_planet(S1, 10,10,10),
-    {ok, _P3} = add_planet(S1, 10,10,20).
-
 
 %%--------------------------------------------------------------------
 %% Function: add_star(Xpos, Ypos) -> {ok, StarId} | {error,Error}
