@@ -52,8 +52,8 @@ load() ->
 %% Function: add_star(Xpos, Ypos) -> {ok, StarId} | {error,Error}
 %% Description: Adds a star to the Universe, or fails trying.
 %%--------------------------------------------------------------------
-add_star(Xpos, Ypos) ->
-    gen_server:call(?SERVER, {add_star, Xpos, Ypos}, ?TIMEOUT).
+add_star(Xpos, Ypos, Key) ->
+    gen_server:call(?SERVER, {add_star, Xpos, Ypos, Key}, ?TIMEOUT).
 
 %%--------------------------------------------------------------------
 %% Function: del_star(StarId) -> -> {ok, StarId} | {error,Error}
@@ -70,9 +70,9 @@ del_star(StarId) ->
 %% Description: Adds a planet to a star in the Universe. Fails
 %%              if the star does not exist.
 %%--------------------------------------------------------------------
-add_planet(StarId, Angle, Speed, Radius) ->
+add_planet(StarId, Angle, Speed, Radius, Note) ->
     gen_server:call(?SERVER,
-                    {add_planet, StarId, Angle, Speed, Radius},
+                    {add_planet, StarId, Angle, Speed, Radius, Note},
                     ?TIMEOUT).
 
 %%--------------------------------------------------------------------
@@ -118,9 +118,9 @@ init([]) ->
 %%                                      {stop, Reason, State}
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
-handle_call({add_star, Xpos, Ypos}, _From,
+handle_call({add_star, Xpos, Ypos, Key}, _From,
             State = #state{objs=StarId}) ->
-    Star  = #star{id=StarId, xpos=Xpos, ypos=Ypos},
+    Star  = #star{id=StarId, xpos=Xpos, ypos=Ypos, key=Key},
     Fun = fun() -> mnesia:write(Star) end,
     mnesia:transaction(Fun),
     Reply = {ok, StarId},
@@ -146,9 +146,10 @@ handle_call({del_star, StarId}, _From, State) ->
     Reply = {ok, StarId},
     {reply, Reply, State};
 
-handle_call({add_planet, StarId, Angle, Speed, Radius}, _From,
+handle_call({add_planet, StarId, Angle, Speed, Radius, Note}, _From,
             State = #state{objs=PlanetId}) ->
-    Planet = #planet{id=PlanetId, radius=Radius, speed=Speed, angle=Angle},
+    Planet = #planet{id=PlanetId, radius=Radius, speed=Speed,
+                     angle=Angle, note=Note},
     Orbit  = #in_orbit{star_id=StarId, planet_id=PlanetId},
     Fun = fun() ->
                   mnesia:write(Orbit),

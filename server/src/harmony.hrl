@@ -13,6 +13,7 @@ time_ge({Sec0, Msec0}, {Sec1, Msec1}) ->
 -record(star, {id      :: id(),
                xpos    :: integer(),
                ypos    :: integer(),
+               key     :: integer(),
                created=uninow() :: time()
               }).
 
@@ -20,6 +21,7 @@ time_ge({Sec0, Msec0}, {Sec1, Msec1}) ->
                  radius    :: integer(),
                  speed     :: integer(),
                  angle     :: integer(),
+                 note      :: integer(),
                  created=uninow() :: time()
                 }).
 
