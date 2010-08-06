@@ -33,7 +33,7 @@ start(_Type, _StartArgs) ->
             {ok, Pid};
         Error ->
             Error
-                end.
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: stop(State) -> void()

@@ -55,8 +55,9 @@ init([]) ->
     Universe = harmony_uni,
     UChild = {Universe, {Universe, start_link, []},
               Restart, Shutdown, Type, [Universe]},
+
     Listener = harmony_listener,
-    LChild = {Listener, {Listener, start_link, []},
+    LChild = {Listener, {Listener, start_link, [1234]},
               Restart, Shutdown, Type, [Listener]},
 
     {ok, {SupFlags, [UChild, LChild]}}.

@@ -9,12 +9,15 @@
 %%% This code is licensed under the MIT license, see distributed copy.
 %%%-------------------------------------------------------------------
 -module(harmony_listener).
+-behavior(gen_server).
 
 %% API
--export([start_link/0, init/1]).
--export([handler/1]).
+-export([init/1, code_change/3, handle_call/3, handle_cast/2]).
+-export([handle_info/2, terminate/2, accept_loop/1]).
+-export([start_link/1]).
 
--define(ListenPort,1234).
+-define(TCP_OPTIONS, [binary, {packet, 0}, {active, false},
+                      {reuseaddr, true}]).
 
 %%export to logfile = 1, no export !=1
 -define(LogFile,1).
@@ -40,6 +43,10 @@
 -define(NoteSize,8).
 
 -define(SERVER,?MODULE).
+-record(server_state, {
+          port,
+          ip=any,
+          lsocket=null}).
 -define(UNI, harmony_uni).
 
 %%====================================================================
@@ -49,46 +56,39 @@
 %% OTP Special Process Callbacks, not quite complete.
 
 %%--------------------------------------------------------------------
-%% Function: start_link() -> {ok,Pid}
+%% Function: start -> {ok,Pid}
 %% Description: Start the listener server.
 %%--------------------------------------------------------------------
-start_link() ->
-    Pid = proc_lib:start_link({local, ?SERVER}, ?MODULE, init, [self()]),
-    {ok,Pid}.
+start_link(Port) ->
+    State = #server_state{port=Port},
+    gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %%--------------------------------------------------------------------
 %% Function: init() -> {ok,State}
-%% Description: Start the listener server.
+%% Description: Start the listener server; open a new socket on the given
+%% port.
 %%--------------------------------------------------------------------
-init(Parent) ->
-    register(?MODULE, self()),
-    proc_lib:init_ack(Parent, {ok, self()}),
-    listen().
+init(State=#server_state{port=Port}) ->
+    case gen_tcp:listen(Port, ?TCP_OPTIONS) of
+        {ok, LSocket} ->
+            NewState = State#server_state{lsocket = LSocket},
+            {ok, accept(NewState)};
+        {error, Reason} ->
+            {stop, Reason}
+    end.
 
-
-%%--------------------------------------------------------------------
-%% Function: listen().
-%% Description: open a new tcp socket on the given port
-%%--------------------------------------------------------------------
-listen() ->
-    {ok, Socket} = gen_tcp:listen(1234, [binary, {active, false}]),
-    accept(Socket).
-
-%%--------------------------------------------------------------------
-%% Function: accept(MySocket).
-%% Description: accepts input from the socket and spawns a new process
-%%              to handle the data input
-%%--------------------------------------------------------------------
-accept(MySocket) ->
-    {ok, Socket} = gen_tcp:accept(MySocket),
-    spawn(?MODULE, fun() -> accept(MySocket) end),
-    loop(Socket).
+handle_cast({accepted, _Pid}, State=#server_state{}) ->
+    {noreply, accept(State)}.
 
 %%--------------------------------------------------------------------
-%% Function: loop(Socket).
-%% Description: recieve the input from the socket, send it to the data
-%%              handler, and send a response to the sender
+%% Function: accept_loop(MySocket).
+%% Description:
 %%--------------------------------------------------------------------
+accept_loop({Server, LSocket}) ->
+    {ok, LSocket} = gen_tcp:accept(LSocket),
+    gen_server:cast(Server, {accepted, self()}),
+    loop(LSocket).
+
 loop(Socket) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
@@ -99,6 +99,14 @@ loop(Socket) ->
 	{error, closed} ->
 	    ok
     end.
+
+%%--------------------------------------------------------------------
+%% Function: accept(Socket).
+%% Description:
+%%--------------------------------------------------------------------
+accept(State = #server_state{lsocket=LSocket}) ->
+    proc_lib:spawn(?MODULE, accept_loop, [{self(), LSocket}]),
+    State.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
@@ -278,3 +286,11 @@ outputFile(1,Message) ->
     io:fwrite(Fd, "~w~n", [Message]),
     file:close(Fd);
 outputFile(_,_) -> nolog.
+
+%%--------------------------------------------------------------------
+%% Surpress Warnings
+%%--------------------------------------------------------------------
+handle_call(_Msg, _Caller, State) -> {noreply, State}.
+handle_info(_Msg, Library) -> {noreply, Library}.
+terminate(_Reason, _Library) -> ok.
+code_change(_OldVersion, Library, _Extra) -> {ok, Library}.
