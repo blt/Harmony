@@ -20,7 +20,7 @@
                       {reuseaddr, true}]).
 
 %%export to logfile = 1, no export !=1
--define(LogFile,1).
+-define(LogFile,0).
 
 %%error codes
 -define(ErrorCode,0).
@@ -34,13 +34,13 @@
 %%bit sizes
 -define(CommandSize,8).
 -define(SuccessSize,8).
--define(TimeSize,64).
 -define(IdSize,16).
 -define(PositionSize,16).
 -define(GenVarSize,16).
 -define(CounterSize,16).
 -define(KeySize,8).
 -define(NoteSize,8).
+-define(MegSecSize, 32).
 
 -define(SERVER,?MODULE).
 -record(server_state, {
@@ -52,8 +52,6 @@
 %%====================================================================
 %% API
 %%====================================================================
-
-%% OTP Special Process Callbacks, not quite complete.
 
 %%--------------------------------------------------------------------
 %% Function: start -> {ok,Pid}
@@ -174,10 +172,10 @@ handler(_T) -> {'Error in input',_T}.
 %% Get UNI output format
 %% [0/1], megSec, sec, micro, #stars, starid, x, y, key
 %%       #planets, planetid, angle, speed, radius,note
-buildBitReturn({ok, {universe, {Sec, MicroSec}, System}}) ->
+buildBitReturn({ok, {universe, {MegSec, Sec, MicroSec}, System}}) ->
     NumSys = length(System),
     SystemBits = binlist(<<>>,lists:map(fun sysFull/1, System)),
-    <<1:?SuccessSize,Sec:?GenVarSize,MicroSec:?GenVarSize,
+    <<1:?SuccessSize,MegSec:?MegSecSize,Sec:?GenVarSize,MicroSec:?GenVarSize,
       NumSys:?CounterSize,SystemBits/bitstring>>;
 
 %% location output format

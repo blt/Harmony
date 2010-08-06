@@ -14,7 +14,7 @@ del_planet(StarId, PlanetId) -> {ok, 23}.  %returns PlanetId
 get_uni(StateId) ->
 	{MegSec, Sec, MicroSec} = now(),	
 	{ok,
-    {universe ,{Sec, MicroSec}
+    {universe ,{MegSec, Sec, MicroSec}
 	    ,[
 	    {system, {star,1,210,210,9}, [{planet,1,10,5,40,8}, {planet,5,80,10,40,3}, {planet,2,27,20,60,4}]}
 	    ,
