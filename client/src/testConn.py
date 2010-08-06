@@ -14,8 +14,8 @@ import lookupCoord
 from lookupCoord import *
 
 
-x = harmonyConn('sundhome.com', 1234)
-#x = harmonyConn('127.0.0.1', 1234)
+#x = harmonyConn('sundhome.com', 1234)
+x = harmonyConn('127.0.0.1', 1234)
 
 #error, invalid command
 print "Add Error", x.addError(33,44)
