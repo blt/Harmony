@@ -106,7 +106,8 @@ loop(Socket) ->
     end.
 
 handle_info({'EXIT',FromPid,Reason},Library) ->
-    harmony_logger:info("Pid ~p died with reason ~p", [FromPid,Reason]);
+    harmony_logger:info("Pid ~p died with reason ~p", [FromPid,Reason]),
+    {noreply, Library};
 handle_info(_Msg, Library) -> {noreply, Library}.
 
 %%--------------------------------------------------------------------
