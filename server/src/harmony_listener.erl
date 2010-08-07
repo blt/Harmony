@@ -83,11 +83,11 @@ handle_cast({accepted, _Pid}, State=#server_state{}) ->
 %%--------------------------------------------------------------------
 accept_loop({Server, LSocket}) ->
     harmony_logger:info("Listener accept_loop entered."),
-    {ok, LSocket} = gen_tcp:accept(LSocket),
+    {ok, Socket} = gen_tcp:accept(LSocket),
     harmony_logger:info("Accepted from peer ~p",
-                        [inet:peername(LSocket)]),
+                        [inet:peername(Socket)]),
     gen_server:cast(Server, {accepted, self()}),
-    loop(LSocket).
+    loop(Socket).
 
 loop(Socket) ->
     case gen_tcp:recv(Socket, 0) of
