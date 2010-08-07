@@ -64,6 +64,7 @@ start_link(Port) ->
 %%--------------------------------------------------------------------
 init(State=#server_state{port=Port}) ->
     harmony_logger:info("Harmony Listener online!"),
+    process_flag(trap_exit, true),
     case gen_tcp:listen(Port, ?TCP_OPTIONS) of
         {ok, LSocket} ->
             NewState = State#server_state{lsocket = LSocket},
@@ -77,10 +78,12 @@ init(State=#server_state{port=Port}) ->
 handle_cast({accepted, _Pid}, State=#server_state{}) ->
     {noreply, accept(State)}.
 
-%%--------------------------------------------------------------------
-%% Function: accept_loop(MySocket).
-%% Description:
-%%--------------------------------------------------------------------
+accept(State = #server_state{lsocket=LSocket}) ->
+    harmony_logger:info("Will spawn new accept_loop"),
+    Pid = proc_lib:spawn_link(?MODULE, accept_loop, [{self(), LSocket}]),
+    harmony_logger:info("New accept_loop has pid: ~p", [Pid]),
+    State.
+
 accept_loop({Server, LSocket}) ->
     harmony_logger:info("Listener accept_loop entered."),
     {ok, Socket} = gen_tcp:accept(LSocket),
@@ -102,20 +105,13 @@ loop(Socket) ->
 	    ok
     end.
 
-%%--------------------------------------------------------------------
-%% Function: accept(Socket).
-%% Description:
-%%--------------------------------------------------------------------
-accept(State = #server_state{lsocket=LSocket}) ->
-    harmony_logger:info("Will spawn new accept_loop"),
-    Pid = proc_lib:spawn(?MODULE, accept_loop, [{self(), LSocket}]),
-    harmony_logger:info("New accept_loop has pid: ~p", [Pid]),
-    State.
+handle_info({'EXIT',FromPid,Reason},Library) ->
+    harmony_logger("Pid ~p died with reason ~p", [FromPid,Reason]);
+handle_info(_Msg, Library) -> {noreply, Library}.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
-
 
 %%--------------------------------------------------------------------
 %%--------------------------------------------------------------------
@@ -283,6 +279,5 @@ getUNI(_) -> {?ErrorCode, ?GetUNIFaultCode}.
 %% Surpress Warnings
 %%--------------------------------------------------------------------
 handle_call(_Msg, _Caller, State) -> {noreply, State}.
-handle_info(_Msg, Library) -> {noreply, Library}.
 terminate(_Reason, _Library) -> ok.
 code_change(_OldVersion, Library, _Extra) -> {ok, Library}.
