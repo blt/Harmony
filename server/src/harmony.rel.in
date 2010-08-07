@@ -2,5 +2,6 @@
  [{kernel, "@ERLANG_LIB_VER_kernel@"},
   {stdlib, "@ERLANG_LIB_VER_stdlib@"},
   {mnesia, "@ERLANG_LIB_VER_mnesia@"},
+  {sasl, "@ERLANG_LIB_VER_sasl@"},
   {harmony, "@VERSION@"}
  ]}.
