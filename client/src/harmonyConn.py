@@ -13,6 +13,7 @@
 import socket
 import struct
 
+
 ## ##--------------------------------------------------------------------
 ## ## Class: harmonyConn 
 ## ## Description: Harmony network client functions
