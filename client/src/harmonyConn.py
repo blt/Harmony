@@ -198,7 +198,7 @@ class harmonyConn:
    	  ## - end of i loop (stars)
 
 	  ## - create the final tuple 
-	  output = (success, (MegSec, Sec, MicroSec), ("universe", stars))
+	  output = (success, ("universe",(MegSec, Sec, MicroSec),stars))
 
 	return output
 	## - end of get_uni function
