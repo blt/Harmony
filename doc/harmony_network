@@ -1,0 +1,72 @@
+Harmony Client/Server Network protocol
+
+The Harmony client/server network interface use the TCP socket protocol to send bit string messages 
+back and forth.  The harmony_listener.erl module located in the server/src directory decodes incoming 
+messages, issues their corresponding commands, bundles each commands response, and sends back to 
+the sender.  For the client, there is a python class file (harmonyConn.py, located in the client/src) 
+that provides the TCP connections, issuing commands to the server, decoding the server returns, and 
+provides valid results to the python application.
+
+Below is a short overview of the bit string commands, and their corresponding returns.  
+
+Commands:  (notation is value:bit length)
+	addStar:
+		send:	(Command , X position, Y position, key)
+    			1:8,X:16,Y:16,Key:8
+		return:	(success, starId)
+    			1: 8, starId:16
+		see fault codes below for error returns (0:8, faultCode:8)
+	delStar:
+		send:	(Command, starId)
+    			2:8, starId:16
+		return:	(success, starId)
+    			1:8, starId:16
+		see fault codes below for error returns (0:8, faultCode:8)
+	addPlanet:
+		send:	(Command, starId, Angle, Speed, Radius, Note)
+    			4:8, starId:16, Angle:16, Speed:16, Radius:16, Note:8
+		return:	(success, planetId)
+    			1:8, planetId:16
+		see fault codes below for error returns (0:8, faultCode:8)
+	delPlanet:
+		send:	(Command, starId, planetId)
+    			8:8, starId:16,  planetId:16
+		return:	(success, planetId)
+    			1:8, planetId:16
+		see fault codes below for error returns (0:8, faultCode:8)
+	getUNI:
+		send: (Command, MegSec, Sec, MicroSec)  16:8, MegSec:16,  Sec:32, MicroSec:32
+		return: (success, universe)     1: 8, universe: arbitrary 
+		
+		The universe return is a bit string of arbitrary
+		length (dependant on the number of items in the server)
+
+    		The return is of the following format:
+		All time stamps are (MegSec:16, Sec:32, MicroSec:32)
+		(1:8, universe)
+		
+    		Universe = (timestamp:80, #systems:16, Systems)
+		Systems = (starId:16, Xpos:16, Ypos:!6, key:8, timestamp:80, #planets:16, Planets)
+		Planets = [(planetId:16, Angle:16, Speed:16, Radius:16, Note:8, timestamp:80)
+
+    		Since a universe can have multiple systems and systems can contain multiple 
+    		planets,  the number of each are encoded into the bit string.  This allows the 
+    		client sender the ability to parse the arbitrary length bit string.
+
+	see fault codes below for error returns (0:8, faultCode:8)
+
+Fault Codes:
+	Faults are returned to the client in two 8 bit terms:
+	First 8 bits = 0 (error condition)
+	Second 8 bit = fault code:
+
+	Codes:
+	0 - CommandFault, the server was unable to find a matching command
+	1 - AddStarFault, the server did not find a match for the add star arguments
+	2 - DelStarFault, the server did not find a match for the delete star arguments
+	3 - AddPlanetFault - the server did not find a match for the add planet arguments
+	4 - DelPlanetFault - the server did not find a match for the delete planet arguments
+	5 - GetUNIFault - the server did not find a match for the get universe arguments
+	6 - SysReturnFault - the server did not find a match for the system arguments
+	7 - PlanetReturnFault - the server did not find a match for the planet arguments
+
