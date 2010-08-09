@@ -1,0 +1,17 @@
+The Harmony Open Source project started as a group project for the PSU Summer 2010 CS410/510 Open Source Software Development class, http://wiki.cs.pdx.edu/oss2010/.  
+
+The goal of the Harmony project is to deliver a computerized musical instrument in which many people can contribute simultaneously to the instrument's sounds.  This collaborative instrument is based on the ideas of "Musica universalis" , or "Music of the spheres" defined by ancient philosophers. See "Musica universalis", for more information (http://en.wikipedia.org/wiki/Musica_universalis). 
+
+Harmony will be implemented with a pygame client and an Erlang server. 
+
+The application provides an interface where stars and each of their orbiting planets can be added, modified, or deleted by any of the musicians.  A musician is defined as anyone who adds, modifies, or deletes starts and/or planets in the Harmony client.  
+
+A musician defines a star in a particular note of the sound files loaded in their Harmony client.  Once a star has been added, the musician can place planets orbiting any of the suns.  The planets will be in successive keys (A..G) in the note of sun they're associated with.  Planets play a continuous tone in their note and key as they orbit, unless they happen to collide with another planet.  Since multiple stars can and will be added to the Harmony client canvas (universe),  there is the intended possibility that planets will collide.  These collisions create an absence of sound for each of the planets involved and for the duration of the collision.  With that said, the musician has control of the planet's key(sun) and note (orbit), in addition to controlling the planet's speed and starting angle.  It should also be noted that more than one planet can be placed on a particular orbit.  These collisions provide a mechanism for implementing beats in Harmony's output.  
+
+Harmony is created in a client/server architecture using pygame and Erlang.  In this initial implementation, the client's user interface is created in pygame (http://pygame.org), for controlling the client UI and audio.  The erlang server is composed of two main elements:  harmony_listener.erl, and harmony_uni.erl.  The listener accepts incoming TCP messages as bit strings, decodes them, issues corresponding commands to the uni server, and bundles the returns from the uni server as bit string which are sent back to the client.
+
+
+
+
+
+ 
