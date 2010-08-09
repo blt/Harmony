@@ -20,12 +20,12 @@
 
 %%error codes
 -define(ErrorCode,0).
--define(CommandFaultCode,99).
--define(AddStarFaultCode,1).
--define(DelStarFaultCode,2).
--define(AddPlanetFaultCode,4).
--define(DelPlanetFaultCode,8).
--define(GetUNIFaultCode,16).
+-define(CommandFault,0).
+-define(AddStarFault,1).
+-define(DelStarFault,2).
+-define(AddPlanetFault,3).
+-define(DelPlanetFault,4).
+-define(GetUNIFault,5).
 
 %%bit sizes
 -define(CommandSize,8).
@@ -36,9 +36,10 @@
 -define(CounterSize,16).
 -define(KeySize,8).
 -define(NoteSize,8).
--define(MegSecSize, 32).
+-define(MegSecSize, 16).
+-define(SecSize, 32).
+-define(MicSecSize, 32).
 
--include("harmony.hrl").
 -define(SERVER,?MODULE).
 -record(server_state, {
           port,
@@ -159,12 +160,12 @@ handler(<<Command:?CommandSize, Remaining/bitstring>>) ->
         4 ->  DataReturn = addPlanet(Remaining);
         8 ->  DataReturn = delPlanet(Remaining);
         16 -> DataReturn = getUNI(Remaining);
-        _  -> DataReturn = {?ErrorCode, ?CommandFaultCode}
+        _  -> DataReturn = {?ErrorCode, ?CommandFault}
     end,
     %build the bitString for return to the sender
     BitReturn = buildBitReturn(DataReturn),
     BitReturn;
-handler(_T) -> {'Error in input',_T}.
+handler(_T) -> {?ErrorCode,_T}.
 
 %%--------------------------------------------------------------------
 %% Function: buildBitReturn({...}) --> {"return bitString"}.
@@ -172,56 +173,39 @@ handler(_T) -> {'Error in input',_T}.
 %%--------------------------------------------------------------------
 
 %% Get UNI output format
-%% [0/1], megSec, sec, micro, #stars, starid, x, y, key
-%%       #planets, planetid, angle, speed, radius,note
-buildBitReturn({ok, {universe, {MegSec, Sec, MicroSec}, System}}) ->
+buildBitReturn({ok,{universe,{MegSec,Sec,MicroSec},System}}) ->
     NumSys = length(System),
     SystemBits = binlist(<<>>,lists:map(fun sysFull/1, System)),
-    <<1:?SuccessSize,MegSec:?MegSecSize,Sec:?GenVarSize,MicroSec:?GenVarSize,
+    <<1:?SuccessSize,MegSec:?MegSecSize,Sec:?SecSize,MicroSec:?MicSecSize,
       NumSys:?CounterSize,SystemBits/bitstring>>;
-
-%% location output format
-%% [0/1], startId, planetId, angle
-buildBitReturn({ok, {State, locations, PlanetList}}) ->
-    NumPlanets = length(PlanetList),
-    PlanetBits = binlist(<<>>, lists:map(fun planetLocation/1, PlanetList)),
-    <<State:?SuccessSize, NumPlanets:?CounterSize, PlanetBits/bitstring>>;
-
 buildBitReturn({ok, ID}) ->
     <<1:?SuccessSize,ID:?IdSize>>;
 buildBitReturn({ok, SID, PID}) ->
     <<1:?SuccessSize,SID:?IdSize, PID:?IdSize>>;
-buildBitReturn({_,ID}) ->
-    <<?ErrorCode:?SuccessSize,ID:?IdSize>>.
+buildBitReturn({0,ID}) ->
+    <<?ErrorCode:?SuccessSize,ID:?SuccessSize>>.
 
 %%--------------------------------------------------------------------
 %% Function: sysFull
 %% Description: Decodes the system data structure to bitstring
 %%--------------------------------------------------------------------
 
-sysFull({system, {star, StarId, StarXpos, StarYpos, Key}, Planets}) ->
+sysFull({system, {star, StarId, StarXpos, StarYpos, Key, {Meg, Sec, Mic}}, Planets}) ->
     NumPlanets = length(Planets),
     PlanetBits = binlist(<<>>, lists:map(fun planetFull/1, Planets)),
     <<StarId:?IdSize,StarXpos:?PositionSize,StarYpos:?PositionSize,
-      Key:?KeySize,NumPlanets:?CounterSize,PlanetBits/bitstring>>.
+      Key:?KeySize,Meg:?MegSecSize,Sec:?SecSize,Mic:?MicSecSize,
+	NumPlanets:?CounterSize,PlanetBits/bitstring>>.
 
 %%--------------------------------------------------------------------
 %% Function: planetFull
 %% Description: Decodes the planet data structure to bitstring
 %%--------------------------------------------------------------------
 
-planetFull(#planet{id=PlanetId, angle=Angle, speed=Speed,
-                   radius=Radius, note=Note}) ->
+planetFull({planet,PlanetId,Angle,Speed,Radius,Note,{Meg,Sec,Mic}}) ->
     <<PlanetId:?IdSize,Angle:?GenVarSize,
-      Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize>>.
-
-%%--------------------------------------------------------------------
-%% Function: planetLocation
-%% Description: Decodes the planet data location structure to bitstring
-%%--------------------------------------------------------------------
-
-planetLocation({StarId, PlanetId, Angle})->
-    <<StarId:?IdSize, PlanetId:?IdSize, Angle:?GenVarSize>>.
+      Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize
+	,Meg:?MegSecSize,Sec:?SecSize,Mic:?MicSecSize>>.
 
 %%--------------------------------------------------------------------
 %% Function: binlist
@@ -240,7 +224,7 @@ binlist(Out, [Head | Tail]) ->
 
 addStar(<<XPos:?PositionSize, YPos:?PositionSize, Key:?KeySize>>) ->
     ?UNI:add_star(XPos, YPos, Key);
-addStar(_) -> {?ErrorCode, ?AddStarFaultCode}.
+addStar(_) -> {?ErrorCode, ?AddStarFault}.
 
 %%--------------------------------------------------------------------
 %% Function: delStar(<<StarId>>) --> {"return statement"}.
@@ -248,7 +232,7 @@ addStar(_) -> {?ErrorCode, ?AddStarFaultCode}.
 %%--------------------------------------------------------------------
 
 delStar(<<StarId:?IdSize>>) -> ?UNI:del_star(StarId);
-delStar(_) -> {?ErrorCode, ?DelStarFaultCode}.
+delStar(_) -> {?ErrorCode, ?DelStarFault}.
 
 %%--------------------------------------------------------------------
 %% Function: addPlanet(<<StarId, Angle, Speed, Radius, Note>>) -->
@@ -259,7 +243,7 @@ delStar(_) -> {?ErrorCode, ?DelStarFaultCode}.
 addPlanet(<<StarId:?IdSize,Angle:?GenVarSize,Speed:?GenVarSize,
             Radius:?GenVarSize,Note:?NoteSize>>) ->
     ?UNI:add_planet(StarId, Angle, Speed, Radius, Note);
-addPlanet(_) -> {?ErrorCode, ?AddPlanetFaultCode}.
+addPlanet(_) -> {?ErrorCode, ?AddPlanetFault}.
 
 %%--------------------------------------------------------------------
 %% Function: delPlanet(<<StarId, PlanetId>>) --> {"return statement"}.
@@ -268,15 +252,16 @@ addPlanet(_) -> {?ErrorCode, ?AddPlanetFaultCode}.
 
 delPlanet(<<StarId:?IdSize, PlanetId:?IdSize>>)->
     ?UNI:del_planet(StarId, PlanetId);
-delPlanet(_) -> {?ErrorCode, ?DelPlanetFaultCode}.
+delPlanet(_) -> {?ErrorCode, ?DelPlanetFault}.
 
 %%--------------------------------------------------------------------
 %% Function: getUNI() --> {"return statement"}.
 %% Description: Calls the get universe function from the server
 %%--------------------------------------------------------------------
 
-getUNI(<<StateId:?GenVarSize>>) -> ?UNI:get_uni(StateId);
-getUNI(_) -> {?ErrorCode, ?GetUNIFaultCode}.
+getUNI(<<MegSec:?MegSecSize, Sec:?SecSize, MicSec:?MicSecSize>>) -> 
+	?UNI:get_uni({MegSec, Sec, MicSec});
+getUNI(_) -> {?ErrorCode, ?GetUNIFault}.
 
 %%--------------------------------------------------------------------
 %% Surpress Warnings
