@@ -26,6 +26,9 @@
 -define(AddPlanetFault,3).
 -define(DelPlanetFault,4).
 -define(GetUNIFault,5).
+-define(SysReturnFault,6).
+-define(PlanetReturnFault,7).
+
 
 %%bit sizes
 -define(CommandSize,8).
@@ -195,7 +198,9 @@ sysFull({system, {star, StarId, StarXpos, StarYpos, Key, {Meg, Sec, Mic}}, Plane
     PlanetBits = binlist(<<>>, lists:map(fun planetFull/1, Planets)),
     <<StarId:?IdSize,StarXpos:?PositionSize,StarYpos:?PositionSize,
       Key:?KeySize,Meg:?MegSecSize,Sec:?SecSize,Mic:?MicSecSize,
-	NumPlanets:?CounterSize,PlanetBits/bitstring>>.
+	NumPlanets:?CounterSize,PlanetBits/bitstring>>;
+sysFull(_) ->
+    <<?ErrorCode:?SuccessSize,?SysReturnFault:?SuccessSize>>.
 
 %%--------------------------------------------------------------------
 %% Function: planetFull
@@ -205,7 +210,9 @@ sysFull({system, {star, StarId, StarXpos, StarYpos, Key, {Meg, Sec, Mic}}, Plane
 planetFull({planet,PlanetId,Angle,Speed,Radius,Note,{Meg,Sec,Mic}}) ->
     <<PlanetId:?IdSize,Angle:?GenVarSize,
       Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize
-	,Meg:?MegSecSize,Sec:?SecSize,Mic:?MicSecSize>>.
+	,Meg:?MegSecSize,Sec:?SecSize,Mic:?MicSecSize>>;
+planetFull(_) ->
+    <<?ErrorCode:?SuccessSize,?PlanetReturnFault:?SuccessSize>>.
 
 %%--------------------------------------------------------------------
 %% Function: binlist

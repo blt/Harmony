@@ -14,26 +14,27 @@ import lookupCoord
 from lookupCoord import *
 
 
-#x = harmonyConn('sundhome.com', 1234)
-x = harmonyConn('127.0.0.1', 1234)
+x = harmonyConn('sundhome.com', 1234)
+#x = harmonyConn('127.0.0.1', 1234)
 
-#error, invalid command
-print "Add Error", x.addError(33,44)
 
 #test add star
-print "Add Star", x.addStar(32,43,5)
+#(X,starID) = x.addStar(1,2,3)
+print "Add Star", x.addStar(1,2,3)
+#print "Add Star", X, starID
 
 #test delete star
-print "Del Star", x.delStar(46)
+#print "Del Star", x.delStar(0)
 
 #test add planet
-print "Add Planet", x.addPlanet(23, 43, 23, 23, 2)
+print "Add Planet", x.addPlanet(0,1,2,3,4)
+#print "Add Planet", x.addPlanet(0,5,6,7,8)
 
 #test delete planet
-print "Del Planet ", x.delPlanet(32, 43)
+#print "Del Planet ", x.delPlanet(32, 43)
 
 #test get universe
-print "getUNI ", x.getUNI(1)
+print "getUNI ", x.getUNI((0,0,0))
 
 
 
@@ -47,12 +48,12 @@ c = lookupCoord(0,0,10,270)
 
 #get the first arclength position based on the 
     #planets startup angle
-firstP = c.firstPosition
-print firstP
+#firstP = c.firstPosition
+#print firstP
 
 #getLocation(arclength location)
-for i in range(int(firstP), 63):
-	print c.getLocation(i)
+#for i in range(int(firstP), 3):
+	#print c.getLocation(i)
 
 #getList -- returns the coordinates dictionary
 #print c.getList()
