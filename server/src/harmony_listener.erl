@@ -38,6 +38,7 @@
 -define(NoteSize,8).
 -define(MegSecSize, 32).
 
+-include("harmony.hrl").
 -define(SERVER,?MODULE).
 -record(server_state, {
           port,
@@ -209,7 +210,8 @@ sysFull({system, {star, StarId, StarXpos, StarYpos, Key}, Planets}) ->
 %% Description: Decodes the planet data structure to bitstring
 %%--------------------------------------------------------------------
 
-planetFull({planet, PlanetId, Angle, Speed, Radius, Note}) ->
+planetFull(#planet{id=PlanetId, angle=Angle, speed=Speed,
+                   radius=Radius, note=Note}) ->
     <<PlanetId:?IdSize,Angle:?GenVarSize,
       Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize>>.
 
