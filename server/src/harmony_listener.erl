@@ -59,8 +59,8 @@
 %% Function: start -> {ok,Pid}
 %% Description: Start the listener server.
 %%--------------------------------------------------------------------
-start_link(Port) ->
-    State = #server_state{port=Port},
+start_link(PortNum) when is_integer(PortNum) ->
+    State = #server_state{port=PortNum},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %%--------------------------------------------------------------------
@@ -68,10 +68,10 @@ start_link(Port) ->
 %% Description: Start the listener server; open a new socket on the given
 %% port.
 %%--------------------------------------------------------------------
-init(State=#server_state{port=Port}) ->
+init(State=#server_state{port=PortNum}) when is_integer(PortNum) ->
     harmony_logger:info("Harmony Listener online!"),
     process_flag(trap_exit, true),
-    case gen_tcp:listen(Port, ?TCP_OPTIONS) of
+    case gen_tcp:listen(PortNum, ?TCP_OPTIONS) of
         {ok, LSocket} ->
             NewState = State#server_state{lsocket = LSocket},
             harmony_logger:info("Listening on socket: ~p",
@@ -84,13 +84,15 @@ init(State=#server_state{port=Port}) ->
 handle_cast({accepted, _Pid}, State=#server_state{}) ->
     {noreply, accept(State)}.
 
-accept(State = #server_state{lsocket=LSocket}) ->
+accept(State = #server_state{lsocket=LSocket})
+  when is_port(LSocket) ->
     harmony_logger:info("Will spawn new accept_loop"),
     Pid = proc_lib:spawn_link(?MODULE, accept_loop, [{self(), LSocket}]),
     harmony_logger:info("New accept_loop has pid: ~p", [Pid]),
     State.
 
-accept_loop({Server, LSocket}) ->
+accept_loop({Server, LSocket})
+  when is_port(LSocket) ->
     harmony_logger:info("Listener accept_loop entered."),
     {ok, Socket} = gen_tcp:accept(LSocket),
     harmony_logger:info("Accepted from peer ~p",
@@ -98,7 +100,7 @@ accept_loop({Server, LSocket}) ->
     gen_server:cast(Server, {accepted, self()}),
     loop(Socket).
 
-loop(Socket) ->
+loop(Socket) when is_port(Socket) ->
     harmony_logger:info("Looping"),
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
@@ -198,7 +200,8 @@ buildBitReturn({0,ID}) ->
 
 sysFull(#system{star=#star{id=StarId,xpos=StarXpos,ypos=StarYpos,
                       key=Key,modified={Meg, Sec, Mic}},
-                planets=Planets}) ->
+                planets=Planets})
+  when is_list(Planets) ->
     NumPlanets = length(Planets),
     PlanetBits = binlist(<<>>, lists:map(fun planetFull/1, Planets)),
     <<StarId:?IdSize,StarXpos:?PositionSize,StarYpos:?PositionSize,
@@ -237,7 +240,7 @@ binlist(Out, [Head | Tail]) ->
 %%--------------------------------------------------------------------
 
 addStar(<<XPos:?PositionSize, YPos:?PositionSize, Key:?KeySize>>) ->
-    ?UNI:add_star(XPos, YPos, Key);
+    ?UNI:add_star(#star{xpos=XPos,ypos=YPos,key=Key});
 addStar(_) -> {?ErrorCode, ?AddStarFault}.
 
 %%--------------------------------------------------------------------
@@ -256,7 +259,8 @@ delStar(_) -> {?ErrorCode, ?DelStarFault}.
 
 addPlanet(<<StarId:?IdSize,Angle:?GenVarSize,Speed:?GenVarSize,
             Radius:?GenVarSize,Note:?NoteSize>>) ->
-    ?UNI:add_planet(StarId, Angle, Speed, Radius, Note);
+    ?UNI:add_planet(StarId, #planet{angle=Angle,speed=Speed,
+                                    radius=Radius,note=Note});
 addPlanet(_) -> {?ErrorCode, ?AddPlanetFault}.
 
 %%--------------------------------------------------------------------
