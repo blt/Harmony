@@ -3,5 +3,5 @@
 # erl -detached -sname harmonyd -setcookie wahwowah \
 #      -boot harmony-0.1.0 -config config/sys.config +K true
 
-erl -sname harmonyd -setcookie wahwowah \
+erl -pa ./ebin -sname harmonyd -setcookie wahwowah \
     -boot harmony-0.1.0 -config config/sys.config +K true
