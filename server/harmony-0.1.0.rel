@@ -1,7 +1,8 @@
-{release, {"harmony", "0.1.0"},
+{release, {"harmony_rel", "0.1.0"},
  {erts, "5.7.5"},
  [{kernel, "2.13.5"},
   {stdlib, "1.16.5"},
   {mnesia, "4.4.13"},
-  {sasl, "2.1.9"}
+  {sasl, "2.1.9"},
+  {harmony, "0.1.0"}
  ]}.
