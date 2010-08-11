@@ -82,7 +82,7 @@ init([]) ->
 %% Internal functions
 %%====================================================================
 
-% Taken from Vagabond's OpenACD by permission.
+% Taken from Vagabond's OpenACD.
 % http://github.com/Vagabond/OpenACD
 build_table(Tablename, Options) when is_atom(Tablename) ->
     case mnesia:system_info(is_running) =:= yes of
