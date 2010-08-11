@@ -7,15 +7,15 @@
 ###
 ### Copyright (c) 2010 Brian L. Troutwine, Jared T. Sund, Cameron Kidd
 
-import harmonyConn 
+import harmonyConn
 from harmonyConn import *
 
 import lookupCoord
 from lookupCoord import *
 
 
-x = harmonyConn('sundhome.com', 1234)
-#x = harmonyConn('127.0.0.1', 1234)
+#x = harmonyConn('sundhome.com', 1234)
+x = harmonyConn('127.0.0.1', 1234)
 
 
 #test add star
@@ -34,7 +34,7 @@ print "Add Planet", x.addPlanet(0,1,2,3,4)
 #print "Del Planet ", x.delPlanet(32, 43)
 
 #test get universe
-print "getUNI ", x.getUNI((0,0,0))
+print "getUNI ", x.getUNI(0)
 
 
 
@@ -46,7 +46,7 @@ print "getUNI ", x.getUNI((0,0,0))
 #lookup(XCenter, YCenter, Radius, Angle)
 c = lookupCoord(0,0,10,270)
 
-#get the first arclength position based on the 
+#get the first arclength position based on the
     #planets startup angle
 #firstP = c.firstPosition
 #print firstP
