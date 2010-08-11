@@ -44,6 +44,7 @@
 -define(MicSecSize, 32).
 
 -define(SERVER,?MODULE).
+-include("harmony.hrl").
 -record(server_state, {
           port,
           ip=any,
@@ -177,7 +178,8 @@ handler(_T) -> {?ErrorCode,_T}.
 %%--------------------------------------------------------------------
 
 %% Get UNI output format
-buildBitReturn({ok,{universe,{MegSec,Sec,MicroSec},System}}) ->
+buildBitReturn({ok,#universe{time={MegSec,Sec,MicroSec},
+                             stars=System}}) ->
     NumSys = length(System),
     SystemBits = binlist(<<>>,lists:map(fun sysFull/1, System)),
     <<1:?SuccessSize,MegSec:?MegSecSize,Sec:?SecSize,MicroSec:?MicSecSize,
@@ -194,7 +196,9 @@ buildBitReturn({0,ID}) ->
 %% Description: Decodes the system data structure to bitstring
 %%--------------------------------------------------------------------
 
-sysFull({system, {star, StarId, StarXpos, StarYpos, Key, {Meg, Sec, Mic}}, Planets}) ->
+sysFull(#system{star=#star{id=StarId,xpos=StarXpos,ypos=StarYpos,
+                      key=Key,modified={Meg, Sec, Mic}},
+                planets=Planets}) ->
     NumPlanets = length(Planets),
     PlanetBits = binlist(<<>>, lists:map(fun planetFull/1, Planets)),
     <<StarId:?IdSize,StarXpos:?PositionSize,StarYpos:?PositionSize,
@@ -208,7 +212,9 @@ sysFull(_) ->
 %% Description: Decodes the planet data structure to bitstring
 %%--------------------------------------------------------------------
 
-planetFull({planet,PlanetId,Angle,Speed,Radius,Note,{Meg,Sec,Mic}}) ->
+planetFull(#planet{id=PlanetId,angle=Angle,speed=Speed,
+                   radius=Radius,note=Note,
+                   created={Meg,Sec,Mic}}) ->
     <<PlanetId:?IdSize,Angle:?GenVarSize,
       Speed:?GenVarSize,Radius:?GenVarSize,Note:?NoteSize
 	,Meg:?MegSecSize,Sec:?SecSize,Mic:?MicSecSize>>;
