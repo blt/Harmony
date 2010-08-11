@@ -53,21 +53,12 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 
-    mnesia:start(),
-    mnesia:create_schema([node()|nodes()]),
-    {atomic, ok} = mnesia:create_table(star, [{attributes,
-                                               record_info(fields, star)},
-                                              {type, set},
-                                              {disc_copies, [node()]}]),
-    {atomic, ok} = mnesia:create_table(planet, [{attributes,
-                                                 record_info(fields, planet)},
-                                                {type, set},
-                                                {disc_copies, [node()]}]),
-    {atmoic, ok} = mnesia:create_table(in_orbit, [{attributes,
-                                                   record_info(fields,
-                                                               in_orbit)},
-                                                  {type, bag},
-                                                  {disc_copies, [node()]}]),
+    build_table(star, [{attributes, record_info(fields, star)},
+                       {type, set}]),
+    build_table(planet, [{attributes, record_info(fields, planet)},
+                         {type, set}]),
+    build_table(in_orbit, [{attributes, record_info(fields, in_orbit)},
+                           {type, bag}]),
     mnesia:wait_for_tables([star,planet,in_orbit],5000),
 
     Universe = harmony_uni,
@@ -90,3 +81,33 @@ init([]) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
+
+% Taken from Vagabond's OpenACD by permission.
+% http://github.com/Vagabond/OpenACD
+build_table(Tablename, Options) when is_atom(Tablename) ->
+    case mnesia:system_info(is_running) =:= yes of
+        false ->
+            exit(mnesia_stopped);
+        true ->ok
+    end,
+    case mnesia:system_info(use_dir) of
+        false ->
+            exit(mnesia_schema_not_found);
+        true ->
+            ok
+    end,
+    case lists:member(Tablename, mnesia:system_info(local_tables)) of
+        true ->
+            mnesia:wait_for_tables([Tablename], 5000),
+            exists;
+        false ->
+            case lists:member(Tablename, mnesia:system_info(tables)) of
+                true ->
+                    mnesia:add_table_copy(Tablename, node(), disc_copies),
+                    copied;
+                false ->
+                    mnesia:create_table(Tablename, Options),
+                    mnesia:change_table_copy_type(Tablename, node(),
+                                                  disc_copy)
+            end
+    end.
