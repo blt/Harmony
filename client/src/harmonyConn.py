@@ -57,6 +57,9 @@ class harmonyConn:
 	  return
    ## - end of checkError function
 
+   def conTime(Self, Meg, Sec, Mic):
+       return  ((Meg * 1000000.0) + Sec + (Mic/1000000.0))
+
 
    ## ##--------------------------------------------------------------------
    ## ## Function: addStar 
@@ -143,6 +146,8 @@ class harmonyConn:
    ## ##              and planets.
    ## ##--------------------------------------------------------------------
    def getUNI(self, (MegSec, Sec, MicSec)):
+
+        
         ## - make a connection to the server, issue command 16 (gen_UNI)
         ## -  recieve the response in variable data
 	s = self.makeConnection()
@@ -186,7 +191,7 @@ class harmonyConn:
 	    for j in range(numPlanets):
 		planetId, angle,speed, radius, note, pMegSec, pSec, pMicSec = struct.unpack(planetInfo, data[start:next])
 		## - add each planet to the current star's planet list
-		planets.append( ("planet",planetId, angle,speed, radius, note, (pMegSec,pSec,pMicSec)) ) #planet tuple
+		planets.append( ("planet",planetId, angle,speed, radius, note, (self.conTime(pMegSec,pSec,pMicSec))) ) #planet tuple
 	        
 		## - increment the bit counters for the bitstring
 		start = next
@@ -194,11 +199,11 @@ class harmonyConn:
 	    ## - end of j loop (planets)
     	  
     	    ## - add the current star to the stars list
-	    stars.append(("system", starId,X,Y,key,(sMegSec,sSec,sMicSec), planets))
+	    stars.append(("system", starId,X,Y,key,(self.conTime(sMegSec,sSec,sMicSec)), planets))
    	  ## - end of i loop (stars)
 
 	  ## - create the final tuple 
-	  output = (success, ("universe",(MegSec, Sec, MicroSec),stars))
+	  output = (success, ("universe",(self.conTime(MegSec, Sec, MicroSec)),stars))
 
 	return output
 	## - end of get_uni function
