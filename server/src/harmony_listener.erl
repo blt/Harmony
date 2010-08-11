@@ -98,13 +98,14 @@ accept_loop({Server, LSocket}) ->
     loop(Socket).
 
 loop(Socket) ->
+    harmony_logger:info("Looping"),
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
             Encoded = handler(Data),
-            harmony_logger:info("Sending data ~p encoded as ~p.~n",
+            harmony_logger:info("Sending data ~p encoded as ~p.",
                      [Data, Encoded]),
 	    gen_tcp:send(Socket, Encoded),
-            harmony_logger:info("Data transmition complete.~n"),
+            harmony_logger:info("Data transmition complete."),
 	    loop(Socket);
 	{error, closed} ->
 	    ok
@@ -266,13 +267,13 @@ delPlanet(_) -> {?ErrorCode, ?DelPlanetFault}.
 %% Description: Calls the get universe function from the server
 %%--------------------------------------------------------------------
 
-getUNI(<<MegSec:?MegSecSize, Sec:?SecSize, MicSec:?MicSecSize>>) -> 
+getUNI(<<MegSec:?MegSecSize, Sec:?SecSize, MicSec:?MicSecSize>>) ->
 	?UNI:get_uni({MegSec, Sec, MicSec});
 getUNI(_) -> {?ErrorCode, ?GetUNIFault}.
 
 %%--------------------------------------------------------------------
 %% Surpress Warnings
 %%--------------------------------------------------------------------
-handle_call(_Msg, _Caller, State) -> {noreply, State}.
+handle_call(break, _Caller, State) -> {noreply, State}.
 terminate(_Reason, _Library) -> ok.
 code_change(_OldVersion, Library, _Extra) -> {ok, Library}.

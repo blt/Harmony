@@ -5,7 +5,7 @@
                xpos    :: integer(),
                ypos    :: integer(),
                key     :: integer(),
-               created=erlang:now() :: time()
+               modified=erlang:now() :: time()
               }).
 
 -record(planet, {id        :: id(),

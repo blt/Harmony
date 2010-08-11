@@ -136,6 +136,8 @@ handle_call({del_star, StarId}, _From, State) ->
 
 handle_call({add_planet, StarId, Angle, Speed, Radius, Note}, _From,
             State = #state{objs=PlanetId}) ->
+    Star = #star{id=StarId, _='_'},
+    harmony_logger:info("StarId ~p gives Star ~p", [StarId, Star]),
     Planet = #planet{id=PlanetId, radius=Radius, speed=Speed,
                      angle=Angle, note=Note},
     Orbit  = #in_orbit{star_id=StarId, planet_id=PlanetId},
@@ -172,7 +174,7 @@ handle_call({get_uni, Time}, _From, State) ->
 
 all_stars(Time) ->
     qlc:q([S || S <- mnesia:table(star),
-                time_ge(S#star.created,Time)
+                time_ge(S#star.modified,Time)
           ]).
 
 all_planets(Star, Time) ->
