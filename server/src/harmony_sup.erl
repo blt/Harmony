@@ -53,6 +53,7 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 
+    mnesia:change_table_copy_type(schema, node(), disc_copy),
     build_table(star, [{attributes, record_info(fields, star)},
                        {type, set}]),
     build_table(planet, [{attributes, record_info(fields, planet)},
@@ -106,8 +107,6 @@ build_table(Tablename, Options) when is_atom(Tablename) ->
                     mnesia:add_table_copy(Tablename, node(), disc_copies),
                     copied;
                 false ->
-                    mnesia:create_table(Tablename, Options),
-                    mnesia:change_table_copy_type(Tablename, node(),
-                                                  disc_copy)
+                    mnesia:create_table(Tablename, Options)
             end
     end.
