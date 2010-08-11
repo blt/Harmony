@@ -17,6 +17,7 @@
 %% Supervisor callbacks
 -export([init/1]).
 
+-include("harmony.hrl").
 -define(SERVER, ?MODULE).
 
 %%====================================================================
@@ -51,6 +52,21 @@ init([]) ->
     Restart = permanent,
     Shutdown = 2000,
     Type = worker,
+
+    mnesia:start(),
+    mnesia:create_schema([node()|nodes()]),
+    {atomic, ok} = mnesia:create_table(star, [{attributes,
+                                               record_info(fields, star)},
+                                              {disc_copies, [node()]}]),
+    {atomic, ok} = mnesia:create_table(planet, [{attributes,
+                                                 record_info(fields, planet)},
+                                                {disc_copies, [node()]}]),
+    {atmoic, ok} = mnesia:create_table(in_orbit, [{attributes,
+                                                   record_info(fields,
+                                                               in_orbit)},
+                                                  {type, bag},
+                                                  {disc_copies, [node()]}]),
+    mnesia:wait_for_tables([star,planet,in_orbit],5000),
 
     Universe = harmony_uni,
     UChild = {Universe, {Universe, start_link, []},
