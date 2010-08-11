@@ -94,10 +94,13 @@ get_uni(Time)
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
 init([]) ->
-    mnesia:create_table(star,     [{attributes, record_info(fields, star)}]),
-    mnesia:create_table(planet,   [{attributes, record_info(fields, planet)}]),
-    mnesia:create_table(in_orbit, [{attributes, record_info(fields, in_orbit)},
-                                   {type, bag}]),
+    mnesia:create_table(star,     [{attributes, record_info(fields, star)},
+                                   {disc_copies, [node()]}]),
+    mnesia:create_table(planet,   [{attributes, record_info(fields, planet)},
+                                   {disc_copies, [node()]}]),
+    mnesia:create_table(in_orbit, [{attributes, record_info(fields,
+                                                            in_orbit)},
+                                   {type, bag}, {disc_copies, [node()]}]),
     mnesia:create_schema([node()|nodes()]),
     mnesia:start(),
     State = #state{bigbang=erlang:now()},
