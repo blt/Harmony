@@ -53,13 +53,13 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 
-    mnesia:change_table_copy_type(schema, node(), disc_copy),
+    mnesia:change_table_copy_type(schema, node(), disc_copies),
     build_table(star, [{attributes, record_info(fields, star)},
-                       {type, set}]),
+                       {disc_copies, [node()]}, {type, set}]),
     build_table(planet, [{attributes, record_info(fields, planet)},
-                         {type, set}]),
+                         {disc_copies, [node()]}, {type, set}]),
     build_table(in_orbit, [{attributes, record_info(fields, in_orbit)},
-                           {type, bag}]),
+                           {disc_copies, [node()]}, {type, bag}]),
     mnesia:wait_for_tables([star,planet,in_orbit],5000),
 
     Universe = harmony_uni,
