@@ -25,4 +25,7 @@
 -record(universe, {time        :: time(),
                    stars       :: [#system{}]}).
 
+-record(counter, {key   :: atom(),
+                  value :: integer()}).
+
 -define(TIMEOUT, 150).

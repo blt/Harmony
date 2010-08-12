@@ -56,10 +56,17 @@ init([]) ->
     mnesia:change_table_copy_type(schema, node(), disc_copies),
     build_table(star, [{attributes, record_info(fields, star)},
                        {disc_copies, [node()]}, {type, set}]),
-    build_table(planet, [{attributes, record_info(fields, planet)},
-                         {disc_copies, [node()]}, {type, set}]),
-    build_table(in_orbit, [{attributes, record_info(fields, in_orbit)},
-                           {disc_copies, [node()]}, {type, bag}]),
+    build_table(planet, [{attributes,
+                          record_info(fields, planet)},
+                         {disc_copies, [node()]},
+                         {type, set}]),
+    build_table(in_orbit, [{attributes, record_info(fields,
+                                                    in_orbit)},
+                           {disc_copies, [node()]},
+                           {type, bag}]),
+    build_table(counter, [{attributes, record_info(fields, counter)},
+                          {disc_copies, [node()]},
+                          {type, set}]),
     mnesia:wait_for_tables([star,planet,in_orbit],5000),
 
     Universe = harmony_uni,
@@ -107,8 +114,6 @@ build_table(Tablename, Options) when is_atom(Tablename) ->
                     mnesia:add_table_copy(Tablename, node(), disc_copies),
                     copied;
                 false ->
-                    mnesia:create_table(Tablename, Options),
-                    mnesia:change_table_copy_type(Tablename, node(),
-                                                  disc_copies)
+                    mnesia:create_table(Tablename, Options)
             end
     end.

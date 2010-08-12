@@ -21,7 +21,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {bigbang, objs=0}).
+-record(state, {bigbang}).
 
 -include("harmony.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -96,9 +96,10 @@ get_uni(Time)
 init([]) ->
     {ok, File} = application:get_env(harmony, uni_dets),
     {ok, UniDB} = dets:open_file(uni_db, {file, File}),
-    case dets:insert_new(UniDB, {bigbang, erlang:now()}) of
+    Now = erlang:now(),
+    case dets:insert_new(UniDB, {bigbang, Now}) of
         true ->
-            State = #state{bigbang=erlang:now()};
+            State = #state{bigbang=Now};
         false ->
             [{bigbang,BigBang}] = dets:lookup(UniDB, bigbang),
             State = #state{bigbang=BigBang}
@@ -114,15 +115,15 @@ init([]) ->
 %%                                      {stop, Reason, State}
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
-handle_call({add_star, InpStar}, _From,
-            State = #state{objs=StarId})
+handle_call({add_star, InpStar}, _From, State)
   when is_record(InpStar, star) ->
+    StarId = star_counter(),
     Star  = InpStar#star{id=StarId},
     Fun = fun() -> mnesia:write(Star) end,
     mnesia:transaction(Fun),
     Reply = {ok, StarId},
     harmony_logger:info("Haved added Star ~p", [Star]),
-    {reply, Reply, State#state{objs=StarId+1}};
+    {reply, Reply, State};
 
 handle_call({del_star, StarId}, _From, State)
   when is_integer(StarId) ->
@@ -145,9 +146,9 @@ handle_call({del_star, StarId}, _From, State)
     Reply = {ok, StarId},
     {reply, Reply, State};
 
-handle_call({add_planet, StarId, InpPlanet}, _From,
-            State = #state{objs=PlanetId})
+handle_call({add_planet, StarId, InpPlanet}, _From, State)
   when is_integer(StarId); is_record(InpPlanet, planet) ->
+    PlanetId = planet_counter(),
     Star = #star{id=StarId, _='_'},
     harmony_logger:info("StarId ~p associated with Star ~p", [StarId, Star]),
     Planet = InpPlanet#planet{id=PlanetId},
@@ -159,7 +160,7 @@ handle_call({add_planet, StarId, InpPlanet}, _From,
     mnesia:transaction(Fun),
     Reply = {ok, PlanetId},
     harmony_logger:info("Haved added Planet ~p", [Planet]),
-    {reply, Reply, State#state{objs=PlanetId+1}};
+    {reply, Reply, State};
 
 handle_call({del_planet, StarId, PlanetId}, _From, State)
   when is_integer(StarId); is_integer(PlanetId) ->
@@ -259,6 +260,15 @@ code_change(_OldVsn, State, _Extra) ->
 %% %%--------------------------------------------------------------------
 %% new_star(Xpos, Ypos) ->
 %%     #star{xpos=Xpos, ypos=Ypos}.
+
+planet_counter() ->
+    obj_counter(planet).
+
+star_counter() ->
+    obj_counter(star).
+
+obj_counter(Type) ->
+    mnesia:dirty_update_counter(counter, Type, 1).
 
 map_(F, [H|T]) ->
     F(H),
