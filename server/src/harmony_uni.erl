@@ -94,7 +94,15 @@ get_uni(Time)
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
 init([]) ->
-    State = #state{bigbang=erlang:now()},
+    {ok, File} = application:get_env(harmony, uni_dets),
+    {ok, UniDB} = dets:open_file(uni_db, {file, File}),
+    case dets:insert_new(UniDB, {bigbang, erlang:now()}) of
+        true ->
+            State = #state{bigbang=erlang:now()};
+        false ->
+            [{bigbang,BigBang}] = dets:lookup(UniDB, bigbang),
+            State = #state{bigbang=BigBang}
+    end,
     {ok, State}.
 
 %%--------------------------------------------------------------------
