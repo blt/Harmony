@@ -129,21 +129,34 @@ handle_call({add_star, InpStar}, _From, State)
 handle_call({del_star, StarId}, _From, State)
   when is_integer(StarId) ->
     Orbit = #in_orbit{star_id=StarId, planet_id='_'},
-    PlanDel = fun(Planet) ->
-                      P_id = Planet#planet.id,
-                      mnesia:delete(planet, P_id)
+    PlanDel = fun(#in_orbit{planet_id=PlanetId}) ->
+                      mnesia:delete({planet, PlanetId})
               end,
+    OrbDel = fun(Orbit) ->
+                     mnesia:delete_object(Orbit)
+             end,
     Fun = fun() ->
+                  harmony_logger:info("Deleting star system ~p", [StarId]),
                   % Find all planets associated with this star.
-                  Planets = mnesia:match_object(Orbit),
+                  Orbits = mnesia:match_object(Orbit),
                   % Delete all associated planets.
-                  map_(PlanDel, Planets),
+                  harmony_logger:info("Deleting planets from orbits: ~p",
+                                      [Orbits]),
+                  map_(PlanDel, Orbits),
                   % Delete orbit links,
-                  mnesia:delete_object(Orbit),
+                  harmony_logger:info("Deleting orbits ~p", [Orbits]),
+                  map_(OrbDel, Orbits),
                   % Delete star.
+                  harmony_logger:info("Deleting star ~p", [StarId]),
                   mnesia:delete({star, StarId})
           end,
-    mnesia:transaction(Fun),
+    case mnesia:transaction(Fun) of
+        {aborted, Reason} ->
+            harmony_logger:info("Delete planet transaction failure: ~p",
+                                [Reason]);
+        {atomic, _Result} ->
+            ok
+    end,
     Reply = {ok, StarId},
     {reply, Reply, State};
 
@@ -166,11 +179,10 @@ handle_call({add_planet, StarId, InpPlanet}, _From, State)
 
 handle_call({del_planet, StarId, PlanetId}, _From, State)
   when is_integer(StarId); is_integer(PlanetId) ->
-    Planet = #planet{id=PlanetId, _='_'},
     Orbit  = #in_orbit{star_id=StarId, planet_id=PlanetId},
     Fun = fun() ->
                   mnesia:delete_object(Orbit),
-                  mnesia:delete_object(Planet)
+                  mnesia:delete({planet, PlanetId})
           end,
     mnesia:transaction(Fun),
     Reply = {ok, PlanetId},

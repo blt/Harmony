@@ -28,15 +28,23 @@ print "Add Star", resp
 #print "Del Star", x.delStar(0)
 
 #test add planet
-print "Add Planet", x.addPlanet(StarId,1,2,3,4)
+resp = (Conf, PlanetId0) = x.addPlanet(StarId,1,2,3,4)
+print "Add Planet", resp
+resp = (Conf, PlanetId1) = x.addPlanet(StarId,5,6,7,8)
+print "Add Planet", resp
 #print "Add Planet", x.addPlanet(0,5,6,7,8)
 
 #test delete planet
-#print "Del Planet ", x.delPlanet(32, 43)
+print "Del Planet ", x.delPlanet(StarId, PlanetId1)
 
 #test get universe
 print "getUNI ", x.getUNI(0)
 
+resp = (Conf, StarId) = x.delStar(StarId)
+print "Del Star", resp
+
+#test get universe
+print "getUNI ", x.getUNI(0)
 
 
 ###-----------------------------------------------------------
