@@ -7,5 +7,5 @@ if [ ! -d "priv/db" ]; then
     mkdir priv/db
 fi
 
-erl -pa ./ebin -sname harmonyd -setcookie wahwowah \
+erl -detached -pa ./ebin -sname harmonyd -setcookie wahwowah \
     -boot harmony-0.1.0 -config config/sys.config +K true
