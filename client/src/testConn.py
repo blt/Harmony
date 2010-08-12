@@ -20,14 +20,15 @@ x = harmonyConn('127.0.0.1', 1234)
 
 #test add star
 #(X,starID) = x.addStar(1,2,3)
-print "Add Star", x.addStar(1,2,3)
+resp = (Conf, StarId) = x.addStar(1,2,3)
+print "Add Star", resp
 #print "Add Star", X, starID
 
 #test delete star
 #print "Del Star", x.delStar(0)
 
 #test add planet
-print "Add Planet", x.addPlanet(0,1,2,3,4)
+print "Add Planet", x.addPlanet(StarId,1,2,3,4)
 #print "Add Planet", x.addPlanet(0,5,6,7,8)
 
 #test delete planet
