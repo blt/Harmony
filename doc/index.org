@@ -14,22 +14,34 @@
 
 * Introduction
 
-Harmony is a collaborative musical instrument: users connect
-to an infinite Universe, add stars associated with a key
-signature and orbit planets around the stars which incites
-them to hum. User's connect together, and work together to
-make beautiful music.
+Harmony is a collaborative musical instrument: users connect to an infinite
+(Currently finite: sorry folks! -ed.)  Universe, add stars associated with a
+key signature and orbit planets in rings around the stars which incites them
+to hum. User's connect and work together to make beautiful music.
 
 That's the plan, anyway.
 
 * Dependencies
 
-Better details to come. Languages:
+What you'll need to run Harmony depends on your desire.
 
-+ Erlang :: harmonyd, the background server and persistent
-            Universe.
+** Running a Client
 
-+ Python :: harmony, the client and instrument.
+You'll need:
+
++ Python >= 2.5 :: Client support libraries are Python.
+
++ Pygame == 1.9 :: The client interface is [[http://www.pygame.org/][Pygame]].
+
+If you have to build Pygame you'll need to install SDL development
+libraries. The details are on their site.
+
+** Running the Server
+
+You'll need:
+
++ Erlang == R13B04 :: Owing to the way Erlang releases work, you will need
+     exactly [[http://www.erlang.org/download/otp_src_R13B04.tar.gz][R13B04]]. Sorry about that!
 
 * Source
 
@@ -38,7 +50,104 @@ it!
 
 * Download
 
-There are no binaries available at this time.
+There are no binaries available at this time. Sorry about that!
+
+* Network Protocol
+
+The Harmony network protocol is a relatively simple affair. The
+harmony_listener.erl module located in the server/src directory decodes
+incoming TCP messages, issues their corresponding commands, bundles each
+commands response, and sends back to the sender.  On the client side, there
+exists a python class file (harmonyConn.py, located in the client/src) that
+provides the TCP connections, issuing commands to the server, decoding the
+server returns, and provides valid results to the python application.
+
+An RFC this is not, but below you'll find an overview of the protocol.
+
+** Commands
+
+All notation is value:bits. All faults have a return value of (0:8,
+FaultCode:8), discussed further in the [[Fault Codes]] section, below.
+
+** addStar
+
+Add a star to the Harmony Universe.
+
+| Send                                   | Return            |
+|----------------------------------------+-------------------|
+| (Command, X position, Y position, Key) | (success, StarId) |
+| (1:8, X:16, Y:16, Key:8)               | (1:8, StarId:16)  |
+|----------------------------------------+-------------------|
+
+** delStar
+
+Delete a star from the Harmony Universe.
+
+| Send              | Return            |
+|-------------------+-------------------|
+| (Command, StarId) | (success, StarId) |
+| (2:8, StarId:16)  | (1:8, StarId:16)  |
+|-------------------+-------------------|
+
+** addPlanet
+
+Add a planet to the Harmony Universe.
+
+| Send                                                    | Return              |
+|---------------------------------------------------------+---------------------|
+| (Command, StarId, Angle, Speed, Radius, Note)           | (success, PlanetId) |
+| (2:8, StarId:16, Angle:16, Speed:16, Radius:16, Note:8) | (1:8, PlanetId:16)  |
+|---------------------------------------------------------+---------------------|
+
+** delPlanet
+
+Delete a planet from the Harmony Universe.
+
+| Send                        | Return              |
+|-----------------------------+---------------------|
+| (Command, StarId, PlanetId) | (success, PlanetId) |
+| (2:8, PlanetId:16)          | (1:8, PlanetId:16)  |
+|-----------------------------+---------------------|
+
+** getUni
+
+Return the Universe state as a difference of changes from the given time.
+
+| Send                                   | Return                    |
+|----------------------------------------+---------------------------|
+| (Command, MegSec, Sec, MicroSec)       | (success, Universe)       |
+| (16:8, MegSec:16, Sec:32, MicroSec:32) | (1:8, Universe:arbitrary) |
+|----------------------------------------+---------------------------|
+
+The length of the Universe return is dependant on the size of the
+Universe. All time-stamps have the format as given above in the command Send
+column. The Universe itself has the following format:
+
++ (time-stamp:80, TotalStars:16, Systems)
+
+where Systems has the format:
+
++ (StarId:16, Xpos:16, Ypos:16, Key:8, ModifiedTime:80, TotalPlanets:16,
+  Planets)
+
+where Planets has the format:
+
++ (PlanetId:16, Angle:16, Speed:16, Radius:16, Note:8, CreatedTime:80).
+
+** Fault Codes
+
+Faults are returned to the client in two 8-bit terms, the first being the
+error condition and the second the error code. The error codes are:
+
+| Value | Name           | Description                             |
+|-------+----------------+-----------------------------------------|
+|     0 | CommandFault   | No matching command.                    |
+|     1 | AddStarFault   | No matching star based on ID.           |
+|     2 | DelStarFault   | No matching star based on ID.           |
+|     3 | AddPlanetFault | No matching star or planet based on ID. |
+|     4 | DelPlanetFault | No matching star or planet based on ID. |
+|     5 | GenUNIFault    | Incorrect arguments.                    |
+|-------+----------------+-----------------------------------------|
 
 #+BEGIN_HTML:
 <script type="text/javascript">
