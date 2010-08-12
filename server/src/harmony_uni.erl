@@ -121,7 +121,13 @@ handle_call({add_star, InpStar}, _From, State)
     StarId = star_counter(),
     Star  = InpStar#star{id=StarId},
     Fun = fun() -> mnesia:write(Star) end,
-    mnesia:transaction(Fun),
+    case mnesia:transaction(Fun) of
+        {aborted, Reason} ->
+            harmony_logger:info("Add star transaction failure: ~p",
+                                [Reason]);
+        {atomic, _Result} ->
+            ok
+    end,
     Reply = {ok, StarId},
     harmony_logger:info("Haved added Star ~p", [Star]),
     {reply, Reply, State};
@@ -152,7 +158,7 @@ handle_call({del_star, StarId}, _From, State)
           end,
     case mnesia:transaction(Fun) of
         {aborted, Reason} ->
-            harmony_logger:info("Delete planet transaction failure: ~p",
+            harmony_logger:info("Delete star transaction failure: ~p",
                                 [Reason]);
         {atomic, _Result} ->
             ok
@@ -172,7 +178,13 @@ handle_call({add_planet, StarId, InpPlanet}, _From, State)
                   mnesia:write(Orbit),
                   mnesia:write(Planet)
           end,
-    mnesia:transaction(Fun),
+    case mnesia:transaction(Fun) of
+        {aborted, Reason} ->
+            harmony_logger:info("Add planet transaction failure: ~p",
+                                [Reason]);
+        {atomic, _Result} ->
+            ok
+    end,
     Reply = {ok, PlanetId},
     harmony_logger:info("Haved added Planet ~p", [Planet]),
     {reply, Reply, State};
@@ -184,7 +196,13 @@ handle_call({del_planet, StarId, PlanetId}, _From, State)
                   mnesia:delete_object(Orbit),
                   mnesia:delete({planet, PlanetId})
           end,
-    mnesia:transaction(Fun),
+    case mnesia:transaction(Fun) of
+        {aborted, Reason} ->
+            harmony_logger:info("Delete planet transaction failure: ~p",
+                                [Reason]);
+        {atomic, _Result} ->
+            ok
+    end,
     Reply = {ok, PlanetId},
     {reply, Reply, State};
 
