@@ -138,8 +138,8 @@ handle_call({del_star, StarId}, _From, State)
     PlanDel = fun(#in_orbit{planet_id=PlanetId}) ->
                       mnesia:delete({planet, PlanetId})
               end,
-    OrbDel = fun(Orbit) ->
-                     mnesia:delete_object(Orbit)
+    OrbDel = fun(Orb) ->
+                     mnesia:delete_object(Orb)
              end,
     Fun = fun() ->
                   harmony_logger:info("Deleting star system ~p", [StarId]),
