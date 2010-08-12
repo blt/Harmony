@@ -63,6 +63,7 @@ add_planet(StarId, Planet=#planet{id=null,angle=Angle,speed=Speed,
                                   radius=Radius,note=Note})
   when is_integer(StarId); is_integer(Angle); is_integer(Speed);
        is_integer(Radius); is_integer(Note) ->
+    harmony_logger:info("Requested addition of planet to star ~p", [StarId]),
     gen_server:call(?SERVER,
                     {add_planet, StarId, Planet},
                     ?TIMEOUT).
@@ -149,9 +150,10 @@ handle_call({del_star, StarId}, _From, State)
 handle_call({add_planet, StarId, InpPlanet}, _From, State)
   when is_integer(StarId); is_record(InpPlanet, planet) ->
     PlanetId = planet_counter(),
-    Star = #star{id=StarId, _='_'},
-    harmony_logger:info("StarId ~p associated with Star ~p", [StarId, Star]),
-    Planet = InpPlanet#planet{id=PlanetId},
+    Now = erlang:now(),
+    star_modified(StarId, Now),
+    Planet = InpPlanet#planet{id=PlanetId,created=Now},
+    harmony_logger:info("Adding planet ~p to star ~p", [PlanetId, StarId]),
     Orbit  = #in_orbit{star_id=StarId, planet_id=PlanetId},
     Fun = fun() ->
                   mnesia:write(Orbit),
@@ -260,6 +262,13 @@ code_change(_OldVsn, State, _Extra) ->
 %% %%--------------------------------------------------------------------
 %% new_star(Xpos, Ypos) ->
 %%     #star{xpos=Xpos, ypos=Ypos}.
+
+star_modified(StarID, Now)
+  when is_integer(StarID); is_tuple(Now); tuple_size(Now) == 3 ->
+    fun() ->
+            [S] = mnesia:wread({star, StarID}),
+            mnesia:write(S#star{modified=Now})
+    end.
 
 planet_counter() ->
     obj_counter(planet).
