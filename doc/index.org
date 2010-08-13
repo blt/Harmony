@@ -52,6 +52,27 @@ it!
 
 There are no binaries available at this time. Sorry about that!
 
+* Client Commands
+
+| Key            | Command Description                                 |
+|----------------+-----------------------------------------------------|
+| Q              | quit                                                |
+| e              | bring up editor                                     |
+| s              | add a star at current mouse position                |
+| p              | place a planet on the ring, pointed to by the mouse |
+| j              | increment speed 0 - 5                               |
+| k              | increment key A - G#                                |
+| z              | remove selected star                                |
+| UP             | scroll up                                           |
+| DOWN           | scroll down                                         |
+| RIGHT          | scroll right                                        |
+| LEFT           | scroll left                                         |
+| LSHIFT + arrow | fast scroll any direction                           |
+| RSHIFT + arrow | warp speed any direction                            |
+|----------------+-----------------------------------------------------|
+
+Select a star system by clicking with mouse.
+
 * Network Protocol
 
 The Harmony network protocol is a relatively simple affair. The

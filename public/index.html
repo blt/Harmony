@@ -87,15 +87,16 @@ lang="en" xml:lang="en">
 </li>
 <li><a href="#sec-3">3 Source </a></li>
 <li><a href="#sec-4">4 Download </a></li>
-<li><a href="#sec-5">5 Network Protocol </a>
+<li><a href="#sec-5">5 Client Commands </a></li>
+<li><a href="#sec-6">6 Network Protocol </a>
 <ul>
-<li><a href="#sec-5.1">5.1 Commands </a></li>
-<li><a href="#sec-5.2">5.2 addStar </a></li>
-<li><a href="#sec-5.3">5.3 delStar </a></li>
-<li><a href="#sec-5.4">5.4 addPlanet </a></li>
-<li><a href="#sec-5.5">5.5 delPlanet </a></li>
-<li><a href="#sec-5.6">5.6 getUni </a></li>
-<li><a href="#sec-5.7">5.7 Fault Codes </a></li>
+<li><a href="#sec-6.1">6.1 Commands </a></li>
+<li><a href="#sec-6.2">6.2 addStar </a></li>
+<li><a href="#sec-6.3">6.3 delStar </a></li>
+<li><a href="#sec-6.4">6.4 addPlanet </a></li>
+<li><a href="#sec-6.5">6.5 delPlanet </a></li>
+<li><a href="#sec-6.6">6.6 getUni </a></li>
+<li><a href="#sec-6.7">6.7 Fault Codes </a></li>
 </ul>
 </li>
 </ul>
@@ -203,8 +204,45 @@ There are no binaries available at this time. Sorry about that!
 </div>
 
 <div id="outline-container-5" class="outline-2">
-<h2 id="sec-5"><span class="section-number-2">5</span> Network Protocol </h2>
+<h2 id="sec-5"><span class="section-number-2">5</span> Client Commands </h2>
 <div class="outline-text-2" id="text-5">
+
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+<caption></caption>
+<colgroup><col align="left" /><col align="left" />
+</colgroup>
+<thead>
+<tr><th scope="col">Key</th><th scope="col">Command Description</th></tr>
+</thead>
+<tbody>
+<tr><td>Q</td><td>quit</td></tr>
+<tr><td>e</td><td>bring up editor</td></tr>
+<tr><td>s</td><td>add a star at current mouse position</td></tr>
+<tr><td>p</td><td>place a planet on the ring, pointed to by the mouse</td></tr>
+<tr><td>j</td><td>increment speed 0 - 5</td></tr>
+<tr><td>k</td><td>increment key A - G#</td></tr>
+<tr><td>z</td><td>remove selected star</td></tr>
+<tr><td>UP</td><td>scroll up</td></tr>
+<tr><td>DOWN</td><td>scroll down</td></tr>
+<tr><td>RIGHT</td><td>scroll right</td></tr>
+<tr><td>LEFT</td><td>scroll left</td></tr>
+<tr><td>LSHIFT + arrow</td><td>fast scroll any direction</td></tr>
+<tr><td>RSHIFT + arrow</td><td>warp speed any direction</td></tr>
+</tbody>
+</table>
+
+
+<p>
+Select a star system by clicking with mouse.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Network Protocol </h2>
+<div class="outline-text-2" id="text-6">
 
 
 <p>
@@ -222,22 +260,22 @@ An RFC this is not, but below you'll find an overview of the protocol.
 
 </div>
 
-<div id="outline-container-5.1" class="outline-3">
-<h3 id="sec-5.1"><span class="section-number-3">5.1</span> Commands </h3>
-<div class="outline-text-3" id="text-5.1">
+<div id="outline-container-6.1" class="outline-3">
+<h3 id="sec-6.1"><span class="section-number-3">6.1</span> Commands </h3>
+<div class="outline-text-3" id="text-6.1">
 
 
 <p>
 All notation is value:bits. All faults have a return value of (0:8,
-FaultCode:8), discussed further in the <a href="#sec-5.1">Fault Codes</a> section, below.
+FaultCode:8), discussed further in the <a href="#sec-6.1">Fault Codes</a> section, below.
 </p>
 </div>
 
 </div>
 
-<div id="outline-container-5.2" class="outline-3">
-<h3 id="sec-5.2"><span class="section-number-3">5.2</span> addStar </h3>
-<div class="outline-text-3" id="text-5.2">
+<div id="outline-container-6.2" class="outline-3">
+<h3 id="sec-6.2"><span class="section-number-3">6.2</span> addStar </h3>
+<div class="outline-text-3" id="text-6.2">
 
 
 <p>
@@ -261,9 +299,9 @@ Add a star to the Harmony Universe.
 
 </div>
 
-<div id="outline-container-5.3" class="outline-3">
-<h3 id="sec-5.3"><span class="section-number-3">5.3</span> delStar </h3>
-<div class="outline-text-3" id="text-5.3">
+<div id="outline-container-6.3" class="outline-3">
+<h3 id="sec-6.3"><span class="section-number-3">6.3</span> delStar </h3>
+<div class="outline-text-3" id="text-6.3">
 
 
 <p>
@@ -287,9 +325,9 @@ Delete a star from the Harmony Universe.
 
 </div>
 
-<div id="outline-container-5.4" class="outline-3">
-<h3 id="sec-5.4"><span class="section-number-3">5.4</span> addPlanet </h3>
-<div class="outline-text-3" id="text-5.4">
+<div id="outline-container-6.4" class="outline-3">
+<h3 id="sec-6.4"><span class="section-number-3">6.4</span> addPlanet </h3>
+<div class="outline-text-3" id="text-6.4">
 
 
 <p>
@@ -313,9 +351,9 @@ Add a planet to the Harmony Universe.
 
 </div>
 
-<div id="outline-container-5.5" class="outline-3">
-<h3 id="sec-5.5"><span class="section-number-3">5.5</span> delPlanet </h3>
-<div class="outline-text-3" id="text-5.5">
+<div id="outline-container-6.5" class="outline-3">
+<h3 id="sec-6.5"><span class="section-number-3">6.5</span> delPlanet </h3>
+<div class="outline-text-3" id="text-6.5">
 
 
 <p>
@@ -339,9 +377,9 @@ Delete a planet from the Harmony Universe.
 
 </div>
 
-<div id="outline-container-5.6" class="outline-3">
-<h3 id="sec-5.6"><span class="section-number-3">5.6</span> getUni </h3>
-<div class="outline-text-3" id="text-5.6">
+<div id="outline-container-6.6" class="outline-3">
+<h3 id="sec-6.6"><span class="section-number-3">6.6</span> getUni </h3>
+<div class="outline-text-3" id="text-6.6">
 
 
 <p>
@@ -395,9 +433,9 @@ Planets)
 
 </div>
 
-<div id="outline-container-5.7" class="outline-3">
-<h3 id="sec-5.7"><span class="section-number-3">5.7</span> Fault Codes </h3>
-<div class="outline-text-3" id="text-5.7">
+<div id="outline-container-6.7" class="outline-3">
+<h3 id="sec-6.7"><span class="section-number-3">6.7</span> Fault Codes </h3>
+<div class="outline-text-3" id="text-6.7">
 
 
 <p>
