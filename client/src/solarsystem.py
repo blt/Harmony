@@ -33,7 +33,7 @@ class SolarSystem(pygame.sprite.Sprite):
     key = None
     focus = None
 
-    def __init__(self, pos, id, key, size=(220,220)):
+    def __init__(self, pos, id, key, size=(240,240)):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface(size).convert()
         self.rect = self.image.get_rect(center=pos)
@@ -46,10 +46,10 @@ class SolarSystem(pygame.sprite.Sprite):
         self.centerx = size[0]/2
         self.centery = size[1]/2
         self.create_rings()
-        self.star = Star((self.centerx, self.centery), id)
+        self.star = Star((self.centerx, self.centery), id, NOTES[key])
         self.image.blit(self.star.image, self.star.rect)
         self.size = size
-        self.key = key
+        self.key = NOTES[key]
         self.focus = 0
 
     # Add a planet object to the planet 
@@ -68,7 +68,7 @@ class SolarSystem(pygame.sprite.Sprite):
                  planet[speed],
                  planet[angle])
  
-        newPlanet = Planet(attrs, planet[pid], pos, time, NOTES[note])
+        newPlanet = Planet(attrs, planet[pid], pos, time, NOTES[planet[note]])
    	self.pSprites.add(newPlanet)
 
         return newPlanet
@@ -128,12 +128,16 @@ class SolarSystem(pygame.sprite.Sprite):
 	if xdist < 200 and ydist < 200:
 	    volume = 0.5
         elif xdist < 400 and ydist < 400:
-            volume = 0.4
+            volume = 0.45
         elif xdist < 600 and ydist < 600:
-            volume = 0.3
+            volume = 0.40
         elif xdist < 800 and ydist < 800:
-            volume = 0.2
+            volume = 0.35
         elif xdist < 1000 and ydist < 1000:
+            volume = 0.3
+        elif xdist < 1200 and ydist < 1200:
+            volume = 0.2
+        elif xdist < 1400 and ydist < 1400:
             volume = 0.1
         else:
             volume = 0

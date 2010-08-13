@@ -10,13 +10,15 @@ class Star(pygame.sprite.Sprite):
     vertx      = 0
     verty      = 0
     sid        = 0
+    key = None
 
-    def __init__(self, pos, id):
+    def __init__(self, pos, id, key):
         pygame.sprite.Sprite.__init__(self)
         self.vertx = pos[0]
         self.verty = pos[1]
         self.sid = id
 	self.load_image()    
+        self.key = key
 
     def load_image(self):
         self.image = image.load(self.image_pth).convert()
