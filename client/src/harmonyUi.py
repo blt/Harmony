@@ -40,13 +40,14 @@ class HarmonyUi(object):
     keyIndex = 0
     editKey = None
     editSpeed = 1 # Speed of next planet placed
-    selStarId = 'None' # id of current selected star
-    selPlanetId = 'None' # id of selected planet
-    selNote = 'None' # note of current selecte planet
-    selSpeed = 'None' # speed of current selected planet 
+    selStarId = None # id of current selected star
+    selPlanetId = None # id of selected planet
+    selNote = None # note of current selecte planet
+    selSpeed = None # speed of current selected planet 
     labelSprites = None # unmutable labels for ui fields
     fieldSprites = None # mutable ui fields
     clearBg = None # background to clear sprites
+    editMode = 0 # if 1 show ui
 
     def __init__(self, screen, pos):
 	self.image = Surface((screen.get_width(), 200))
@@ -60,14 +61,21 @@ class HarmonyUi(object):
         self.create_labels()
         self.create_fields()
 
+    def set_editMode(self):
+	if self.editMode:
+	    self.editMode = 0
+        else:
+            self.editMode = 1
+
     def set_selected_star(self, star):
         self.selKey = star.key
-        self.selStarId = star.id
+        self.selStarId = star.sid
 
     def set_selected_planet(self, planet):
         self.selNote = planet.note
         self.selSpeed = planet.speed
-        self.selPlanetId = planet.id
+	print self.selPlanetId
+        self.selPlanetId = planet.pid
   
     def set_current_pos(self, pos):
 	self.currPos = pos
@@ -78,12 +86,23 @@ class HarmonyUi(object):
     def get_edit_key(self):
         return self.keyIndex
 
+    def inc_edit_key(self):
+	self.keyIndex += 1
+	if self.keyIndex > 11:
+	    self.keyIndex = 0
+	
+	self.editKey = self.keys[self.keyIndex]
+
+    def inc_edit_speed(self):
+	self.editSpeed += 1
+	if self.editSpeed > 5:
+	    self.editSpeed = 0
+
     # Create mutable fields and add them to 
     # the fieldSprites group. Since fields 
     # may change with each tick the group
     # is emptied and repopulated every call.
     def create_fields(self):
-        self.set_current_pos(pygame.mouse.get_pos())
         self.fieldSprites.clear(self.image, self.clearBg)
         self.fieldSprites.empty()
 
@@ -95,13 +114,13 @@ class HarmonyUi(object):
         self.fieldSprites.add(eSpeed)
         eKey = uiSprite(self.editKey, (80,125), 'field', 'eKey')
         self.fieldSprites.add(eKey)
-        sid = uiSprite(self.selStarId, (353,101), 'field', 'sid')
+        sid = uiSprite(`self.selStarId`, (353,101), 'field', 'sid')
         self.fieldSprites.add(sid)
         skey = uiSprite(self.selKey, (353,126), 'field', 'skey')
         self.fieldSprites.add(skey)
-        pid = uiSprite(self.selPlanetId, (535,101), 'field', 'pid')
+        pid = uiSprite(`self.selPlanetId`, (535,101), 'field', 'pid')
         self.fieldSprites.add(pid)
-        pSpeed = uiSprite(self.selSpeed, (535,126), 'field', 'pSpeed')
+        pSpeed = uiSprite(`self.selSpeed`, (535,126), 'field', 'pSpeed')
         self.fieldSprites.add(pSpeed)
 
     # Create all of the labels for the ui fields
@@ -125,5 +144,7 @@ class HarmonyUi(object):
         self.labelSprites.add(pspeedLabel)
  
     def draw_ui(self):
-        self.labelSprites.draw(self.image)
-        self.fieldSprites.draw(self.image)
+	self.labelSprites.clear(self.image, self.clearBg)
+	if self.editMode:
+            self.labelSprites.draw(self.image)
+            self.fieldSprites.draw(self.image)
